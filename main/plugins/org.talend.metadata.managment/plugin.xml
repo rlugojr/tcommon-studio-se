@@ -370,5 +370,11 @@
             required="true">
       </libraryNeeded>
    </extension>
+   <extension
+         point="org.talend.core.runtime.hadoopConnectionCreator">
+      <creator
+            class="org.talend.metadata.managment.hive.creator.HiveConnectionCreator">
+      </creator>
+   </extension>
 
 </plugin>
