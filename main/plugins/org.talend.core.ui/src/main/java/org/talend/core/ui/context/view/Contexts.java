@@ -18,6 +18,7 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.talend.core.ui.branding.IBrandingConfiguration;
 
@@ -34,15 +35,26 @@ public class Contexts {
     private static final String PERSPECTIVE_DI_ID = "org.talend.rcp.perspective"; //$NON-NLS-1$ 
 
     public static void switchToCurContextsView() {
+        AbstractContextView cxtView = getViewWithPerspectiveIDs();
+        if (cxtView != null) {
+            updateTitle(cxtView);
+            refreshView(cxtView);
+        }
+    }
+    
+    public static void switchToCurContextsView(IWorkbenchPart part) {
+        AbstractContextView cxtView = getViewWithPerspectiveIDs();
+        if (cxtView != null) {
+            updateTitle(cxtView);
+            cxtView.refresh(part);
+        }
+    }
+
+    private static AbstractContextView getViewWithPerspectiveIDs() {
         Set<String> perspIDs = new HashSet<String>();
         perspIDs.add(PERSPECTIVE_DI_ID);
         perspIDs.add(IBrandingConfiguration.PERSPECTIVE_CAMEL_ID);
-        AbstractContextView cxtView = getView(perspIDs, AbstractContextView.CTX_ID_DESIGNER);
-        if (cxtView == null) {
-            return;
-        }
-        updateTitle(cxtView);
-        refreshView(cxtView);
+        return getView(perspIDs, AbstractContextView.CTX_ID_DESIGNER);
     }
 
     /**

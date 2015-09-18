@@ -33,6 +33,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.ViewPart;
 import org.talend.core.model.process.IContextManager;
@@ -287,6 +288,15 @@ public abstract class AbstractContextView extends ViewPart {
 
     public void refresh() {
         getPart();
+        refreshPart();
+    }
+
+    public void refresh(IWorkbenchPart editorPart) {
+        part = (EditorPart) editorPart;
+        refreshPart();
+    }
+    
+    private void refreshPart() {
         if (part != null) {
             boolean modified = updateContextFromRepository();
             if (modified) {
@@ -297,7 +307,7 @@ public abstract class AbstractContextView extends ViewPart {
         }
         contextComposite.setPart(part);
     }
-
+    
     /**
      * DOC xqliu Comment method "setCompositeReadonly".
      * 
