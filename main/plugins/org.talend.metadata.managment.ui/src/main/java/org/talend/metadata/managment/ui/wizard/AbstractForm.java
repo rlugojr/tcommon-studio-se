@@ -110,6 +110,8 @@ public abstract class AbstractForm extends Composite {
      */
     private boolean hasContextBtn = false;
 
+    protected Group contextGroup;
+
     protected UtilsButton exportContextBtn;
 
     protected UtilsButton revertContextBtn;
@@ -393,13 +395,13 @@ public abstract class AbstractForm extends Composite {
     private void addExportContextButton() {
         if (hasContextBtn() && connectionItem != null && !isTOPStandaloneMode()) {
             final int height = 45;
-            Group group = Form.createGroup(this, 1, null);
+            contextGroup = Form.createGroup(this, 1, null);
             GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
             gridData.minimumHeight = height;
             gridData.heightHint = height;
-            group.setLayoutData(gridData);
+            contextGroup.setLayoutData(gridData);
 
-            Composite exportComposite = Form.startNewGridLayout(group, 2, true, SWT.CENTER, SWT.CENTER);
+            Composite exportComposite = Form.startNewGridLayout(contextGroup, 2, true, SWT.CENTER, SWT.CENTER);
             GC gc = new GC(exportComposite);
 
             String displayStr = Messages.getString("AbstractForm.ExportAsContext"); //$NON-NLS-1$
@@ -628,4 +630,17 @@ public abstract class AbstractForm extends Composite {
             }
         }
     }
+
+    protected void removeAllChildrenControls(Composite composite) {
+        if (composite == null) {
+            return;
+        }
+        Control[] children = composite.getChildren();
+        if (children != null && children.length > 0) {
+            for (Control control : children) {
+                control.dispose();
+            }
+        }
+    }
+
 }

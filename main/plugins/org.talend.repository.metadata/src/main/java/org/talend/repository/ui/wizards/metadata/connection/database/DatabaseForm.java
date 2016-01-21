@@ -40,6 +40,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.FocusEvent;
@@ -84,6 +85,7 @@ import org.talend.commons.ui.swt.formtools.LabelledText;
 import org.talend.commons.ui.swt.formtools.UtilsButton;
 import org.talend.commons.ui.utils.PathUtils;
 import org.talend.commons.ui.utils.loader.MyURLClassLoader;
+import org.talend.components.api.wizard.ComponentWizard;
 import org.talend.core.GlobalServiceRegister;
 import org.talend.core.ILibraryManagerService;
 import org.talend.core.database.EDatabaseTypeName;
@@ -130,6 +132,7 @@ import org.talend.core.model.utils.ContextParameterUtils;
 import org.talend.core.prefs.ITalendCorePrefConstants;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.runtime.CoreRuntimePlugin;
+import org.talend.core.runtime.services.IGenericWizardService;
 import org.talend.core.ui.CoreUIPlugin;
 import org.talend.core.ui.branding.IBrandingConfiguration;
 import org.talend.core.ui.branding.IBrandingService;
@@ -137,6 +140,7 @@ import org.talend.core.ui.metadata.celleditor.ModuleListDialog;
 import org.talend.cwm.helper.ConnectionHelper;
 import org.talend.designer.core.model.utils.emf.talendfile.ContextParameterType;
 import org.talend.designer.core.model.utils.emf.talendfile.ContextType;
+import org.talend.metadata.managment.generic.GenericDBWizardUtil;
 import org.talend.metadata.managment.hive.EHiveExecutionTypes;
 import org.talend.metadata.managment.model.MetadataFillFactory;
 import org.talend.metadata.managment.repository.ManagerConnection;
@@ -320,6 +324,14 @@ public class DatabaseForm extends AbstractForm {
 
     private Composite compositeGroupDbSettings;
 
+    private StackLayout dbInfoCompLayout;
+
+    private Composite dbInfoComp;
+
+    private Composite standardDbInfoComp;
+
+    private Composite newComponentsDbInfoComp;
+
     private Group hiveComposite;
 
     private Composite yarnComp;
@@ -432,6 +444,10 @@ public class DatabaseForm extends AbstractForm {
     private Composite dbConnectionArea;
 
     private Composite hidableArea;
+
+    private Composite unionBtnsCompsite;
+
+    private Group databasePropertiesGroup;
 
     private Button moveButton;
 
@@ -850,12 +866,27 @@ public class DatabaseForm extends AbstractForm {
         data.horizontalSpan = 3;
         label.setLayoutData(data);
 
-        addFieldsForTypeDB(compositeGroupDbSettings);
-        addFieldsForGeneralDB(compositeGroupDbSettings);
+        dbInfoCompLayout = new StackLayout();
+        dbInfoComp = new Composite(compositeGroupDbSettings, SWT.NONE);
+        dbInfoComp.setLayout(dbInfoCompLayout);
+        dbInfoComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+        standardDbInfoComp = Form.startNewGridLayout(dbInfoComp, 1);
+        GridLayout standardDbInfoCompLayout = (GridLayout) standardDbInfoComp.getLayout();
+        standardDbInfoCompLayout.marginHeight = 0;
+        standardDbInfoCompLayout.marginWidth = 0;
+
+        addFieldsForTypeDB(standardDbInfoComp);
+        addFieldsForGeneralDB(standardDbInfoComp);
 
         switchBetweenTypeandGeneralDB(true);
 
-        addCheckAndStandardButtons(width, compositeGroupDbSettings);
+        addCheckAndStandardButtons(width, standardDbInfoComp);
+
+        newComponentsDbInfoComp = Form.startNewGridLayout(dbInfoComp, 1);
+        GridLayout newComponentsDbInfoCompLayout = (GridLayout) newComponentsDbInfoComp.getLayout();
+        newComponentsDbInfoCompLayout.marginHeight = 0;
+        newComponentsDbInfoCompLayout.marginWidth = 0;
 
         checkDBTypeAS400();
 
@@ -883,6 +914,14 @@ public class DatabaseForm extends AbstractForm {
                 }
             }
         });
+    }
+
+    private void updateVisibleStatusOfFields(boolean isNewFramework) {
+        hideControl(contextGroup, isNewFramework);
+        hideControl(unionBtnsCompsite, isNewFramework);
+        hideControl(databasePropertiesGroup, isNewFramework);
+        int[] weights = isNewFramework ? new int[] { 33, 0 } : new int[] { 21, 12 };
+        sash.setWeights(weights);
     }
 
     /*
@@ -2331,7 +2370,7 @@ public class DatabaseForm extends AbstractForm {
         fileField.hide();
         directoryField.hide();
 
-        Composite unionBtnsCompsite = new Composite(dbConnectionArea, SWT.NONE);
+        unionBtnsCompsite = new Composite(dbConnectionArea, SWT.NONE);
         FormLayout formLayout = new FormLayout();
         unionBtnsCompsite.setLayout(formLayout);
 
@@ -2366,14 +2405,14 @@ public class DatabaseForm extends AbstractForm {
         hidableArea.setLayout(hidableAreaLayout);
 
         // Group Database Properties
-        Group group1 = Form.createGroup(hidableArea, 1, Messages.getString("DatabaseForm.groupDatabaseProperties")); //$NON-NLS-1$
+        databasePropertiesGroup = Form.createGroup(hidableArea, 1, Messages.getString("DatabaseForm.groupDatabaseProperties")); //$NON-NLS-1$
         GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
         // gridData.minimumHeight = 50;
         gridData.heightHint = 80;
-        group1.setLayoutData(gridData);
+        databasePropertiesGroup.setLayoutData(gridData);
         // Composite compositeGroupDbProperties =
         // Form.startNewGridLayout(group1, 4, false, SWT.LEFT, SWT.CENTER);
-        Composite compositeGroupDbProperties = Form.startNewDimensionnedGridLayout(group1, 8, width, 50);
+        Composite compositeGroupDbProperties = Form.startNewDimensionnedGridLayout(databasePropertiesGroup, 8, width, 50);
 
         // PTODO !StandBy! (use width SQL Editor): to define the values of SQL
         // Syntax (need by SQL Editor)
@@ -2419,15 +2458,15 @@ public class DatabaseForm extends AbstractForm {
         sqlSyntaxCombo.setVisible(!CoreRuntimePlugin.getInstance().isDataProfilePerspectiveSelected());
         hiveModeCombo.setVisible(!CoreRuntimePlugin.getInstance().isDataProfilePerspectiveSelected());
 
-        group1.setVisible(!isTOPStandaloneMode());
+        databasePropertiesGroup.setVisible(!isTOPStandaloneMode());
         if (metadataconnection != null) {
             IDBMetadataProviderObject providerObj = ExtractMetaDataFromDataBase.getProviderObjectByDbType(metadataconnection
                     .getDbType());
             if (providerObj != null && !providerObj.isSupportJDBC()) {
-                group1.setVisible(false);
+                databasePropertiesGroup.setVisible(false);
             }
         }
-        isDbPropertiesVisible = group1.getVisible();
+        isDbPropertiesVisible = databasePropertiesGroup.getVisible();
     }
 
     private void addMoveButtonListener() {
@@ -3284,167 +3323,19 @@ public class DatabaseForm extends AbstractForm {
             @Override
             public void modifyText(final ModifyEvent e) {
                 getConnection().getParameters().clear();
-                resetControls();
-                urlConnectionStringText.setEditable(false);
-                authenticationGrpForImpala.setVisible(false);
-                authenticationGrpForImpala.getParent().layout();
-                // add for bug 12649
-                clearFiledsForDiffDbTypes();
-                boolean isGeneralJDBC = isGeneralJDBC();
-                if (isGeneralJDBC) {
-                    if (generalJdbcUrlText != null) {
-                        generalJdbcUrlText.setText(""); //$NON-NLS-1$
-                    }
-                    if (generalJdbcUserText != null) {
-                        generalJdbcUserText.setText(""); //$NON-NLS-1$
-                    }
-                    if (generalJdbcPasswordText != null) {
-                        generalJdbcPasswordText.setText(""); //$NON-NLS-1$
-                    }
-
-                } else if (isHiveDBConnSelected()) {
-                    // Added by Marvin Wang on Oct. 15, 2012 for bug TDI-23235.
-                    if (urlConnectionStringText != null) {
-                        urlConnectionStringText.setText(""); //$NON-NLS-1$
-                    }
-                    if (usernameText != null) {
-
-                        usernameText.setText(""); //$NON-NLS-1$
-                    }
-                    if (passwordText != null) {
-                        passwordText.setText(""); //$NON-NLS-1$
-                    }
-                    hideControl(authenticationGrpForHBase, true);
-                    initHiveInfo();
-                } else if (isDBTypeSelected(EDatabaseConnTemplate.HBASE)) {
-                    hideControl(authenticationCom, true);
-                    initHBaseSettings();
-                } else if (isDBTypeSelected(EDatabaseConnTemplate.IMPALA)) {
-                    hideControl(authenticationCom, true);
-                    hideControl(authenticationComForHBase, true);
-                    initImpalaSettings();
-                    getConnection().setDbVersionString("");
+                EDatabaseTypeName dbType = EDatabaseTypeName.getTypeFromDisplayName(dbTypeCombo.getText());
+                String dbTypeName = dbType.getXmlName().toLowerCase();
+                ComponentWizard dbWizard = GenericDBWizardUtil.getDBWizard(getConnection(), dbTypeName);
+                if (dbWizard == null) {
+                    updateStandardDbInfo();
                 } else {
-                    if (urlConnectionStringText != null) {
-                        urlConnectionStringText.setText(""); //$NON-NLS-1$
-                    }
-                    if (usernameText != null) {
-
-                        usernameText.setText(""); //$NON-NLS-1$
-                    }
-                    if (passwordText != null) {
-                        passwordText.setText(""); //$NON-NLS-1$
-                    }
+                    updateNewComponentsDbInfo(dbWizard);
                 }
-                if (schemaText != null) {
-                    schemaText.setText(""); //$NON-NLS-1$
-                }
-                if (serverText != null) {
-                    serverText.setText(""); //$NON-NLS-1$
-                }
-                if (sidOrDatabaseText != null) {
-                    sidOrDatabaseText.setText(""); //$NON-NLS-1$
-                }
-                if (portText != null && portText.getText() != null) {
-                    portText.setText(""); //$NON-NLS-1$
-                }
-                if (fileField != null) {
-                    fileField.setText(""); //$NON-NLS-1$
-                }
-                if (datasourceText != null) {
-                    datasourceText.setText(""); //$NON-NLS-1$
-                }
-                if (additionParamText != null) {
-                    additionParamText.setText(""); //$NON-NLS-1$
-                }
-                if (generalJdbcClassNameText != null) {
-                    generalJdbcClassNameText.setText(""); //$NON-NLS-1$
-                }
-                if (generalJdbcDriverjarText != null) {
-                    generalJdbcDriverjarText.setText(""); //$NON-NLS-1$
-                }
-                if (additionParamText != null) {
-                    additionParamText.setText(""); //$NON-NLS-1$
-                }
-                if (mappingFileText != null) {
-                    mappingFileText.setText(""); //$NON-NLS-1$
-                }
-
-                boolean hiddenGeneral = !isGeneralJDBC();
-
-                // change controls
-                switchBetweenTypeandGeneralDB(!isGeneralJDBC());
-
-                if (!isContextMode()) {
-                    getConnection().setDatabaseType(dbTypeCombo.getText());
-
-                    EDatabaseConnTemplate template = EDatabaseConnTemplate.indexOfTemplate(getConnection().getDatabaseType());
-                    if (template != null) {
-                        portText.setText(template.getDefaultPort());
-                    }
-                    final String product = EDatabaseTypeName.getTypeFromDisplayName(getConnection().getDatabaseType())
-                            .getProduct();
-                    getConnection().setProductId(product);
-
-                    String mapping = null;
-
-                    if (product == null || product.equals(EDatabaseConnTemplate.GENERAL_JDBC.getDBDisplayName())) {
-                        mapping = generalMappingFileText.getText();
-                    } else {
-                        if (MetadataTalendType.getDefaultDbmsFromProduct(product) != null) {
-                            mapping = MetadataTalendType.getDefaultDbmsFromProduct(product).getId();
-                        }
-                    }
-                    if (mapping == null) {
-                        mapping = "mysql_id"; // default value //$NON-NLS-1$
-                    }
-                    getConnection().setDbmsId(mapping);
-
-                    setPropertiesFormEditable(true);
-
-                    additionParamText.setText(EDatabaseConnTemplate.getAdditionProperty(dbTypeCombo.getText()));
-                    if (dbTypeCombo.getText().equals(EDatabaseConnTemplate.INFORMIX.getDBDisplayName())) {
-                        datasourceText.setLabelText(Messages.getString("DatabaseForm.informixInstance")); //$NON-NLS-1$
-                    }
-                    checkAndSetIniSQLModel();
-                    checkAS400SpecificCase();
-                    checkFieldsValue();
-                    hideDbVersion();
-                    // see bug 0005237: Create DB Connection issue.
-                    if (!schemaText.getEditable()) {
-                        schemaText.setText(""); //$NON-NLS-1$
-                    }
-                    if (isHiveDBConnSelected()) {
-                        doHiveDBTypeSelected();
-                        fillDefaultsWhenHiveVersionChanged();
-                        fillDefaultsWhenHiveModeChanged(isHiveEmbeddedMode());
-                    } else {
-                        doHiveDBTypeNotSelected();
-                    }
-
-                    if (isHBaseDBConnSelected()) {
-                        fillDefaultsWhenHBaseVersionChanged();
-                    }
-                    if (isImpalaDBConnSelected()) {
-                        fillDefaultsWhenImpalaVersionChanged();
-                    }
-                }
-
-                // Added by Marvin Wang on Oct. 22, 2012 just for show the scrolled bar when a hive DB type is selected.
-                // It is not the better way to do this, if the code of DB part is required to refactor, this code could
-                // be removed.
-                if (isHiveDBConnSelected()) {
-                    scrolledComposite.setMinSize(newParent.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-                } else if (isImpalaDBConnSelected()) {
-                    scrolledComposite.setMinSize(newParent.computeSize(SWT.DEFAULT, 550));
-                } else {
-                    checkScrolledCompositeSize();
-                }
-
-                if (!isDBTypeSelected(EDatabaseConnTemplate.HBASE) && !isDBTypeSelected(EDatabaseConnTemplate.HIVE)
-                        && !isDBTypeSelected(EDatabaseConnTemplate.IMPALA)) {
-                    clearHadoopRelatedParameters();
-                }
+                boolean isNewFramework = dbWizard != null;
+                dbInfoCompLayout.topControl = isNewFramework ? newComponentsDbInfoComp : standardDbInfoComp;
+                dbInfoComp.layout();
+                compositeGroupDbSettings.layout();
+                updateVisibleStatusOfFields(isNewFramework);
             }
 
         });
@@ -3562,6 +3453,181 @@ public class DatabaseForm extends AbstractForm {
 
         if (canLinkToHadoopCluster()) {
             addHadoopClusterLinkListeners();
+        }
+    }
+
+    private void updateStandardDbInfo() {
+        resetControls();
+        urlConnectionStringText.setEditable(false);
+        authenticationGrpForImpala.setVisible(false);
+        authenticationGrpForImpala.getParent().layout();
+        // add for bug 12649
+        clearFiledsForDiffDbTypes();
+        boolean isGeneralJDBC = isGeneralJDBC();
+        if (isGeneralJDBC) {
+            if (generalJdbcUrlText != null) {
+                generalJdbcUrlText.setText(""); //$NON-NLS-1$
+            }
+            if (generalJdbcUserText != null) {
+                generalJdbcUserText.setText(""); //$NON-NLS-1$
+            }
+            if (generalJdbcPasswordText != null) {
+                generalJdbcPasswordText.setText(""); //$NON-NLS-1$
+            }
+
+        } else if (isHiveDBConnSelected()) {
+            // Added by Marvin Wang on Oct. 15, 2012 for bug TDI-23235.
+            if (urlConnectionStringText != null) {
+                urlConnectionStringText.setText(""); //$NON-NLS-1$
+            }
+            if (usernameText != null) {
+
+                usernameText.setText(""); //$NON-NLS-1$
+            }
+            if (passwordText != null) {
+                passwordText.setText(""); //$NON-NLS-1$
+            }
+            hideControl(authenticationGrpForHBase, true);
+            initHiveInfo();
+        } else if (isDBTypeSelected(EDatabaseConnTemplate.HBASE)) {
+            hideControl(authenticationCom, true);
+            initHBaseSettings();
+        } else if (isDBTypeSelected(EDatabaseConnTemplate.IMPALA)) {
+            hideControl(authenticationCom, true);
+            hideControl(authenticationComForHBase, true);
+            initImpalaSettings();
+            getConnection().setDbVersionString("");
+        } else {
+            if (urlConnectionStringText != null) {
+                urlConnectionStringText.setText(""); //$NON-NLS-1$
+            }
+            if (usernameText != null) {
+
+                usernameText.setText(""); //$NON-NLS-1$
+            }
+            if (passwordText != null) {
+                passwordText.setText(""); //$NON-NLS-1$
+            }
+        }
+        if (schemaText != null) {
+            schemaText.setText(""); //$NON-NLS-1$
+        }
+        if (serverText != null) {
+            serverText.setText(""); //$NON-NLS-1$
+        }
+        if (sidOrDatabaseText != null) {
+            sidOrDatabaseText.setText(""); //$NON-NLS-1$
+        }
+        if (portText != null && portText.getText() != null) {
+            portText.setText(""); //$NON-NLS-1$
+        }
+        if (fileField != null) {
+            fileField.setText(""); //$NON-NLS-1$
+        }
+        if (datasourceText != null) {
+            datasourceText.setText(""); //$NON-NLS-1$
+        }
+        if (additionParamText != null) {
+            additionParamText.setText(""); //$NON-NLS-1$
+        }
+        if (generalJdbcClassNameText != null) {
+            generalJdbcClassNameText.setText(""); //$NON-NLS-1$
+        }
+        if (generalJdbcDriverjarText != null) {
+            generalJdbcDriverjarText.setText(""); //$NON-NLS-1$
+        }
+        if (additionParamText != null) {
+            additionParamText.setText(""); //$NON-NLS-1$
+        }
+        if (mappingFileText != null) {
+            mappingFileText.setText(""); //$NON-NLS-1$
+        }
+
+        // change controls
+        switchBetweenTypeandGeneralDB(!isGeneralJDBC());
+
+        if (!isContextMode()) {
+            getConnection().setDatabaseType(dbTypeCombo.getText());
+
+            EDatabaseConnTemplate template = EDatabaseConnTemplate.indexOfTemplate(getConnection().getDatabaseType());
+            if (template != null) {
+                portText.setText(template.getDefaultPort());
+            }
+            final String product = EDatabaseTypeName.getTypeFromDisplayName(getConnection().getDatabaseType()).getProduct();
+            getConnection().setProductId(product);
+
+            String mapping = null;
+
+            if (product == null || product.equals(EDatabaseConnTemplate.GENERAL_JDBC.getDBDisplayName())) {
+                mapping = generalMappingFileText.getText();
+            } else {
+                if (MetadataTalendType.getDefaultDbmsFromProduct(product) != null) {
+                    mapping = MetadataTalendType.getDefaultDbmsFromProduct(product).getId();
+                }
+            }
+            if (mapping == null) {
+                mapping = "mysql_id"; // default value //$NON-NLS-1$
+            }
+            getConnection().setDbmsId(mapping);
+
+            setPropertiesFormEditable(true);
+
+            additionParamText.setText(EDatabaseConnTemplate.getAdditionProperty(dbTypeCombo.getText()));
+            if (dbTypeCombo.getText().equals(EDatabaseConnTemplate.INFORMIX.getDBDisplayName())) {
+                datasourceText.setLabelText(Messages.getString("DatabaseForm.informixInstance")); //$NON-NLS-1$
+            }
+            checkAndSetIniSQLModel();
+            checkAS400SpecificCase();
+            checkFieldsValue();
+            hideDbVersion();
+            // see bug 0005237: Create DB Connection issue.
+            if (!schemaText.getEditable()) {
+                schemaText.setText(""); //$NON-NLS-1$
+            }
+            if (isHiveDBConnSelected()) {
+                doHiveDBTypeSelected();
+                fillDefaultsWhenHiveVersionChanged();
+                fillDefaultsWhenHiveModeChanged(isHiveEmbeddedMode());
+            } else {
+                doHiveDBTypeNotSelected();
+            }
+
+            if (isHBaseDBConnSelected()) {
+                fillDefaultsWhenHBaseVersionChanged();
+            }
+            if (isImpalaDBConnSelected()) {
+                fillDefaultsWhenImpalaVersionChanged();
+            }
+        }
+
+        // Added by Marvin Wang on Oct. 22, 2012 just for show the scrolled bar when a hive DB type is selected.
+        // It is not the better way to do this, if the code of DB part is required to refactor, this code could
+        // be removed.
+        if (isHiveDBConnSelected()) {
+            scrolledComposite.setMinSize(newParent.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+        } else if (isImpalaDBConnSelected()) {
+            scrolledComposite.setMinSize(newParent.computeSize(SWT.DEFAULT, 550));
+        } else {
+            checkScrolledCompositeSize();
+        }
+
+        if (!isDBTypeSelected(EDatabaseConnTemplate.HBASE) && !isDBTypeSelected(EDatabaseConnTemplate.HIVE)
+                && !isDBTypeSelected(EDatabaseConnTemplate.IMPALA)) {
+            clearHadoopRelatedParameters();
+        }
+
+        standardDbInfoComp.layout();
+    }
+
+    private void updateNewComponentsDbInfo(ComponentWizard componentWizard) {
+        removeAllChildrenControls(newComponentsDbInfoComp);
+        IGenericWizardService wizardService = GenericDBWizardUtil.getGenericWizardService();
+        if (wizardService != null && componentWizard != null) {
+            List<org.talend.components.api.properties.presentation.Form> forms = componentWizard.getForms();
+            if (forms.size() > 0) {
+                wizardService.createDynamicCompositeForWizard(newComponentsDbInfoComp, connectionItem, forms.get(0));
+                newComponentsDbInfoComp.layout();
+            }
         }
     }
 

@@ -16,11 +16,14 @@ import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
+import org.talend.components.api.properties.presentation.Form;
+import org.talend.components.api.wizard.ComponentWizard;
 import org.talend.core.IService;
 import org.talend.core.model.metadata.builder.connection.Connection;
 import org.talend.core.model.metadata.builder.connection.MetadataTable;
 import org.talend.core.model.process.EComponentCategory;
 import org.talend.core.model.process.Element;
+import org.talend.core.model.properties.ConnectionItem;
 import org.talend.core.model.properties.Item;
 import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.repository.model.RepositoryNode;
@@ -93,4 +96,27 @@ public interface IGenericWizardService extends IService {
      */
     public Composite creatDynamicComposite(Composite composite, Element element, EComponentCategory sectionCategory,
             boolean isCompactView);
+
+    /**
+     * Create the DynamicComposite for wizard only.
+     * 
+     * @param container
+     * @param connectionItem
+     * @param form
+     * @return
+     */
+    public Composite createDynamicCompositeForWizard(Composite container, ConnectionItem connectionItem, Form form);
+
+    /**
+     * 
+     * Get the component wizard by <code>typeName</code> if creating connection or <code>compPropertiesStr</code> if
+     * editing connection.
+     * 
+     * @param typeName
+     * @param compPropertiesStr
+     * @param location
+     * @return
+     */
+    public ComponentWizard getComponentWizard(String typeName, String compPropertiesStr, String location);
+
 }

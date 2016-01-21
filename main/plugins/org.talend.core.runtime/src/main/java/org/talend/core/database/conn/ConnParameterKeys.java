@@ -173,4 +173,10 @@ public class ConnParameterKeys {
     public static final String CONN_PARA_KEY_IMPALA_VERSION = "CONN_PARA_KEY_IMPALA_VERSION"; //$NON-NLS-1$
 
     public static final String IMPALA_AUTHENTICATION_PRINCIPLA = "IMPALA_AUTHENTICATION_PRINCIPLA";//$NON-NLS-1$
+
+    /**
+     * New component framework keys
+     */
+    public static final String CONN_PARA_KEY_COMPONENT_PROPERTIES = "CONN_PARA_KEY_COMPONENT_PROPERTIES"; //$NON-NLS-1$
+
 }

@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.common.util.EList;
@@ -39,6 +40,7 @@ import org.talend.commons.ui.runtime.image.ECoreImage;
 import org.talend.commons.ui.runtime.image.ImageProvider;
 import org.talend.commons.ui.swt.dialogs.ErrorDialogWidthDetailArea;
 import org.talend.commons.utils.VersionUtils;
+import org.talend.components.api.wizard.ComponentWizard;
 import org.talend.core.GlobalServiceRegister;
 import org.talend.core.ITDQCompareService;
 import org.talend.core.ITDQRepositoryService;
@@ -75,6 +77,7 @@ import org.talend.cwm.helper.ConnectionHelper;
 import org.talend.cwm.helper.SwitchHelpers;
 import org.talend.designer.core.IDesignerCoreService;
 import org.talend.metadata.managment.connection.manager.HiveConnectionManager;
+import org.talend.metadata.managment.generic.GenericDBWizardUtil;
 import org.talend.metadata.managment.model.MetadataFillFactory;
 import org.talend.metadata.managment.ui.utils.ConnectionContextHelper;
 import org.talend.metadata.managment.ui.utils.DBConnectionContextUtils;
@@ -409,8 +412,14 @@ public class DatabaseWizard extends CheckLastVersionRepositoryWizard implements 
              * original. hywang
              */
 
-            // MOD by gdbu 2011-3-24 bug 19528
             EDatabaseTypeName dbType = EDatabaseTypeName.getTypeFromDbType(connection.getDatabaseType());
+
+            String dbTypeName = dbType.getXmlName().toLowerCase();
+            ComponentWizard dbWizard = GenericDBWizardUtil.getDBWizard(connection, dbTypeName);
+            if (dbWizard != null) {
+                return createOrUpdateNewDBConnection();
+            }
+
             if (dbType != EDatabaseTypeName.GENERAL_JDBC) {
                 String driverClass = ExtractMetaDataUtils.getInstance().getDriverClassByDbType(connection.getDatabaseType());
                 DatabaseConnection dbConnection = (DatabaseConnection) connectionItem.getConnection();
@@ -510,6 +519,26 @@ public class DatabaseWizard extends CheckLastVersionRepositoryWizard implements 
         } else {
             return false;
         }
+    }
+
+    private boolean createOrUpdateNewDBConnection() {
+        String displayName = connectionProperty.getDisplayName();
+        this.connection.setName(displayName);
+        this.connection.setLabel(displayName);
+        connectionProperty.setId(propertyId);
+        try {
+            if (creation) {
+                repFactory.create(connectionItem, propertiesWizardPage.getDestinationPath());
+            } else {
+                RepositoryUpdateManager.updateDBConnection(connectionItem);
+                updateConnectionItem();
+            }
+        } catch (Exception e) {
+            new ErrorDialogWidthDetailArea(getShell(), PID, Messages.getString("CommonWizard.persistenceException"), //$NON-NLS-1$
+                    ExceptionUtils.getFullStackTrace(e));
+            return false;
+        }
+        return true;
     }
 
     /**

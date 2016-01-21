@@ -16,7 +16,8 @@ Require-Bundle: org.eclipse.ui,
  org.talend.utils,
  org.apache.log4j,
  javax.xml.rpc,
- org.eclipse.xsd
+ org.eclipse.xsd,
+ org.talend.components.api
 Bundle-ActivationPolicy: lazy
 Eclipse-RegisterBuddy: org.talend.testutils
 Export-Package: metadata.managment.i18n,
@@ -28,6 +29,7 @@ Export-Package: metadata.managment.i18n,
  org.talend.metadata.managment,
  org.talend.metadata.managment.connection.manager,
  org.talend.metadata.managment.creator,
+ org.talend.metadata.managment.generic,
  org.talend.metadata.managment.hive,
  org.talend.metadata.managment.hive.handler,
  org.talend.metadata.managment.mdm,
