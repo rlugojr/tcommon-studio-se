@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2015 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // %InstallDIR%\features\org.talend.rcp.branding.%PRODUCTNAME%\%PRODUCTNAME%license.txt
@@ -12,21 +12,15 @@
 // ============================================================================
 package org.talend.core.ui.check;
 
+import java.util.EventListener;
+
 /**
  * 
- * created by ycbai on 2015年10月9日 Detailled comment
+ * created by ycbai on 2015年9月30日 Detailled comment
  *
  */
-public interface IChecker {
+public interface ICheckListener<T> extends EventListener {
 
-    public void setListener(ICheckListener listener);
-
-    public void updateStatus(int level, final String statusLabelText);
-
-    public boolean isStatusOnError();
-
-    public String getStatus();
-
-    public int getStatusLevel();
+    public void checkPerformed(T source);
 
 }

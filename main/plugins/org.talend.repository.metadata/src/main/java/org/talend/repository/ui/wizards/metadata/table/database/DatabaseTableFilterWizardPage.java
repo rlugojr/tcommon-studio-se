@@ -20,6 +20,7 @@ import org.talend.core.model.metadata.IMetadataConnection;
 import org.talend.core.model.metadata.builder.database.TableInfoParameters;
 import org.talend.core.model.properties.ConnectionItem;
 import org.talend.core.runtime.CoreRuntimePlugin;
+import org.talend.core.ui.check.ICheckListener;
 import org.talend.metadata.managment.ui.wizard.AbstractForm;
 
 /**
@@ -63,12 +64,14 @@ public class DatabaseTableFilterWizardPage extends WizardPage {
      * 
      * @see IDialogPage#createControl(Composite)
      */
+    @Override
     public void createControl(final Composite parent) {
 
         tableForm = new DatabaseTableFilterForm(parent, this, metadataConnection);
 
-        AbstractForm.ICheckListener listener = new AbstractForm.ICheckListener() {
+        ICheckListener<AbstractForm> listener = new ICheckListener<AbstractForm>() {
 
+            @Override
             public void checkPerformed(final AbstractForm source) {
                 if (source.isStatusOnError()) {
                     DatabaseTableFilterWizardPage.this.setPageComplete(false);

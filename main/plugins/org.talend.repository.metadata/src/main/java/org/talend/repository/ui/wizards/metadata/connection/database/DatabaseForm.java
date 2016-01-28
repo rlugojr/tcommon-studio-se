@@ -18,6 +18,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -476,6 +477,8 @@ public class DatabaseForm extends AbstractForm {
      */
     private boolean isDbPropertiesVisible = true;
 
+    private org.talend.components.api.properties.presentation.Form newWizardForm;
+
     /**
      * Constructor to use by a Wizard to create a new database connection.
      * 
@@ -511,6 +514,14 @@ public class DatabaseForm extends AbstractForm {
         GridLayout layout2 = (GridLayout) getLayout();
         layout2.marginHeight = 0;
         setLayout(layout2);
+
+        EDatabaseTypeName dbType = EDatabaseTypeName.getTypeFromDisplayName(getConnection().getDatabaseType());
+        String dbTypeName = dbType.getXmlName().toLowerCase();
+        ComponentWizard dbWizard = GenericDBWizardUtil.getDBWizard(getConnection(), dbTypeName);
+        if (dbWizard != null) {
+            updateNewWizardDbInfo(dbWizard);
+            updateVisibleStatusOfFields(true);
+        }
     }
 
     /**
@@ -917,11 +928,14 @@ public class DatabaseForm extends AbstractForm {
     }
 
     private void updateVisibleStatusOfFields(boolean isNewFramework) {
+        int[] weights = isNewFramework ? new int[] { 33, 0 } : new int[] { 21, 12 };
+        sash.setWeights(weights);
+        dbInfoCompLayout.topControl = isNewFramework ? newComponentsDbInfoComp : standardDbInfoComp;
         hideControl(contextGroup, isNewFramework);
         hideControl(unionBtnsCompsite, isNewFramework);
         hideControl(databasePropertiesGroup, isNewFramework);
-        int[] weights = isNewFramework ? new int[] { 33, 0 } : new int[] { 21, 12 };
-        sash.setWeights(weights);
+        dbInfoComp.layout();
+        compositeGroupDbSettings.layout();
     }
 
     /*
@@ -3329,13 +3343,9 @@ public class DatabaseForm extends AbstractForm {
                 if (dbWizard == null) {
                     updateStandardDbInfo();
                 } else {
-                    updateNewComponentsDbInfo(dbWizard);
+                    updateNewWizardDbInfo(dbWizard);
                 }
-                boolean isNewFramework = dbWizard != null;
-                dbInfoCompLayout.topControl = isNewFramework ? newComponentsDbInfoComp : standardDbInfoComp;
-                dbInfoComp.layout();
-                compositeGroupDbSettings.layout();
-                updateVisibleStatusOfFields(isNewFramework);
+                updateVisibleStatusOfFields(dbWizard != null);
             }
 
         });
@@ -3619,16 +3629,35 @@ public class DatabaseForm extends AbstractForm {
         standardDbInfoComp.layout();
     }
 
-    private void updateNewComponentsDbInfo(ComponentWizard componentWizard) {
+    private void updateNewWizardDbInfo(ComponentWizard componentWizard) {
+        setCommmonParameters();
         removeAllChildrenControls(newComponentsDbInfoComp);
         IGenericWizardService wizardService = GenericDBWizardUtil.getGenericWizardService();
         if (wizardService != null && componentWizard != null) {
             List<org.talend.components.api.properties.presentation.Form> forms = componentWizard.getForms();
             if (forms.size() > 0) {
-                wizardService.createDynamicCompositeForWizard(newComponentsDbInfoComp, connectionItem, forms.get(0));
+                newWizardForm = forms.get(0);
+                wizardService.createDynamicCompositeForWizard(newComponentsDbInfoComp, connectionItem, newWizardForm, this,
+                        Collections.singletonList("name")); //$NON-NLS-1$
                 newComponentsDbInfoComp.layout();
+                checkNewWizardFieldsValue();
             }
         }
+    }
+
+    private void setCommmonParameters() {
+        getConnection().setDatabaseType(dbTypeCombo.getText());
+        String dbType = getConnection().getDatabaseType();
+        final String product = EDatabaseTypeName.getTypeFromDisplayName(dbType).getProduct();
+        getConnection().setProductId(product);
+        String mapping = null;
+        if (MetadataTalendType.getDefaultDbmsFromProduct(product) != null) {
+            mapping = MetadataTalendType.getDefaultDbmsFromProduct(product).getId();
+        }
+        if (mapping == null) {
+            mapping = "mysql_id"; // default value //$NON-NLS-1$
+        }
+        getConnection().setDbmsId(mapping);
     }
 
     private void resetControls() {
@@ -4292,6 +4321,16 @@ public class DatabaseForm extends AbstractForm {
         }
         if (stringQuoteText.getCharCount() == 0) {
             updateStatus(IStatus.WARNING, Messages.getString("DatabaseForm.alert", stringQuoteText.getLabelText())); //$NON-NLS-1$
+            return false;
+        }
+
+        updateStatus(IStatus.OK, null);
+        return true;
+    }
+
+    public boolean checkNewWizardFieldsValue() {
+        if (dbTypeCombo.getSelectionIndex() < 0) {
+            updateStatus(IStatus.ERROR, Messages.getString("DatabaseForm.alert", dbTypeCombo.getLabel())); //$NON-NLS-1$
             return false;
         }
 
@@ -6541,4 +6580,13 @@ public class DatabaseForm extends AbstractForm {
         collectContextParams();
         super.exportAsContext();
     }
+
+    public org.talend.components.api.properties.presentation.Form getNewWizardForm() {
+        return this.newWizardForm;
+    }
+
+    public void setNewWizardForm(org.talend.components.api.properties.presentation.Form newWizardForm) {
+        this.newWizardForm = newWizardForm;
+    }
+
 }

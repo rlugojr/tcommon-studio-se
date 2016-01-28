@@ -17,6 +17,7 @@ import java.util.List;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.talend.components.api.properties.presentation.Form;
+import org.talend.components.api.service.ComponentService;
 import org.talend.components.api.wizard.ComponentWizard;
 import org.talend.core.IService;
 import org.talend.core.model.metadata.builder.connection.Connection;
@@ -26,6 +27,7 @@ import org.talend.core.model.process.Element;
 import org.talend.core.model.properties.ConnectionItem;
 import org.talend.core.model.properties.Item;
 import org.talend.core.model.repository.ERepositoryObjectType;
+import org.talend.core.ui.check.IChecker;
 import org.talend.repository.model.RepositoryNode;
 
 /**
@@ -33,6 +35,8 @@ import org.talend.repository.model.RepositoryNode;
  *
  */
 public interface IGenericWizardService extends IService {
+
+    public ComponentService getComponentService();
 
     /**
      * Create repository nodes by component service.
@@ -103,9 +107,12 @@ public interface IGenericWizardService extends IService {
      * @param container
      * @param connectionItem
      * @param form
+     * @param checker
+     * @param excludeParameterNames
      * @return
      */
-    public Composite createDynamicCompositeForWizard(Composite container, ConnectionItem connectionItem, Form form);
+    public Composite createDynamicCompositeForWizard(Composite container, ConnectionItem connectionItem, Form form,
+            IChecker checker, List<String> excludeParameterNames);
 
     /**
      * 

@@ -14,7 +14,6 @@ package org.talend.metadata.managment.ui.wizard;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.EventListener;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -51,6 +50,7 @@ import org.talend.core.model.process.IContextManager;
 import org.talend.core.model.properties.ConnectionItem;
 import org.talend.core.model.properties.ContextItem;
 import org.talend.core.repository.model.provider.IDBMetadataProvider;
+import org.talend.core.ui.check.IChecker;
 import org.talend.core.ui.context.model.table.ConectionAdaptContextVariableModel;
 import org.talend.designer.core.model.utils.emf.talendfile.ContextType;
 import org.talend.metadata.managment.ui.MetadataManagmentUiPlugin;
@@ -66,7 +66,7 @@ import org.talend.metadata.managment.ui.utils.ShadowProcessHelper;
  * $Id: AbstractForm.java 45884 2010-07-23 09:18:06Z hwang $
  * 
  */
-public abstract class AbstractForm extends Composite {
+public abstract class AbstractForm extends Composite implements IChecker<AbstractForm> {
 
     protected static final String PID = MetadataManagmentUiPlugin.PLUGIN_ID;
 
@@ -96,7 +96,7 @@ public abstract class AbstractForm extends Composite {
 
     protected Label statusLabel;
 
-    protected ICheckListener listener;
+    protected org.talend.core.ui.check.ICheckListener<AbstractForm> listener;
 
     /**
      * Use to validate the unicity of label use to the metadata.
@@ -158,9 +158,7 @@ public abstract class AbstractForm extends Composite {
      * $Id: AbstractForm.java 45884 2010-07-23 09:18:06Z hwang $
      * 
      */
-    public static interface ICheckListener extends EventListener {
-
-        void checkPerformed(AbstractForm source);
+    public static interface ICheckListener extends org.talend.core.ui.check.ICheckListener<AbstractForm> {
     }
 
     /**
@@ -278,7 +276,8 @@ public abstract class AbstractForm extends Composite {
      * 
      * @param listener the listener to set
      */
-    public void setListener(ICheckListener listener) {
+    @Override
+    public void setListener(org.talend.core.ui.check.ICheckListener<AbstractForm> listener) {
         this.listener = listener;
     }
 
@@ -287,7 +286,8 @@ public abstract class AbstractForm extends Composite {
      * 
      * @param String
      */
-    protected void updateStatus(final int status, final String statusLabelText) {
+    @Override
+    public void updateStatus(final int status, final String statusLabelText) {
         this.status = statusLabelText;
         if (!isInWizard) {
             if (statusLabelText != null) {
@@ -309,6 +309,7 @@ public abstract class AbstractForm extends Composite {
      * 
      * @return the statusOnError
      */
+    @Override
     public boolean isStatusOnError() {
         return this.statusLevel == IStatus.ERROR;
     }
@@ -322,10 +323,12 @@ public abstract class AbstractForm extends Composite {
         return this.statusLevel == IStatus.OK;
     }
 
+    @Override
     public String getStatus() {
         return status;
     }
 
+    @Override
     public int getStatusLevel() {
         return statusLevel;
     }

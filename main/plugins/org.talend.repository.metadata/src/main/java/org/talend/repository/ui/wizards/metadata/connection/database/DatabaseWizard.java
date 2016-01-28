@@ -40,6 +40,9 @@ import org.talend.commons.ui.runtime.image.ECoreImage;
 import org.talend.commons.ui.runtime.image.ImageProvider;
 import org.talend.commons.ui.swt.dialogs.ErrorDialogWidthDetailArea;
 import org.talend.commons.utils.VersionUtils;
+import org.talend.components.api.properties.ComponentProperties;
+import org.talend.components.api.properties.presentation.Form;
+import org.talend.components.api.service.ComponentService;
 import org.talend.components.api.wizard.ComponentWizard;
 import org.talend.core.GlobalServiceRegister;
 import org.talend.core.ITDQCompareService;
@@ -73,12 +76,14 @@ import org.talend.core.repository.model.provider.IDBMetadataProvider;
 import org.talend.core.repository.utils.AbstractResourceChangesService;
 import org.talend.core.repository.utils.TDQServiceRegister;
 import org.talend.core.runtime.CoreRuntimePlugin;
+import org.talend.core.runtime.services.IGenericWizardService;
 import org.talend.cwm.helper.ConnectionHelper;
 import org.talend.cwm.helper.SwitchHelpers;
 import org.talend.designer.core.IDesignerCoreService;
 import org.talend.metadata.managment.connection.manager.HiveConnectionManager;
 import org.talend.metadata.managment.generic.GenericDBWizardUtil;
 import org.talend.metadata.managment.model.MetadataFillFactory;
+import org.talend.metadata.managment.persistence.DBRepository;
 import org.talend.metadata.managment.ui.utils.ConnectionContextHelper;
 import org.talend.metadata.managment.ui.utils.DBConnectionContextUtils;
 import org.talend.metadata.managment.ui.wizard.CheckLastVersionRepositoryWizard;
@@ -140,6 +145,8 @@ public class DatabaseWizard extends CheckLastVersionRepositoryWizard implements 
     private IProxyRepositoryFactory repFactory;
 
     private String propertyId;
+
+    private ComponentService compService;
 
     /**
      * Constructor for DatabaseWizard. Analyse Iselection to extract DatabaseConnection and the pathToSave. Start the
@@ -292,6 +299,14 @@ public class DatabaseWizard extends CheckLastVersionRepositoryWizard implements 
             propertyId = connectionProperty.getId();
         }
         connection.setId(propertyId);
+
+        IGenericWizardService genericWizardService = GenericDBWizardUtil.getGenericWizardService();
+        if (genericWizardService != null) {
+            compService = genericWizardService.getComponentService();
+            if (compService != null) {
+                compService.setRepository(new DBRepository());
+            }
+        }
 
         // initialize the context mode
         ConnectionContextHelper.checkContextMode(connectionItem);
@@ -527,13 +542,21 @@ public class DatabaseWizard extends CheckLastVersionRepositoryWizard implements 
         this.connection.setLabel(displayName);
         connectionProperty.setId(propertyId);
         try {
-            if (creation) {
-                repFactory.create(connectionItem, propertiesWizardPage.getDestinationPath());
-            } else {
-                RepositoryUpdateManager.updateDBConnection(connectionItem);
-                updateConnectionItem();
+            Form form = databaseWizardPage.getNewWizardForm();
+            if (form != null && form.isCallAfterFormFinish()) {
+                String formName = form.getName();
+                ComponentProperties formProperties = form.getComponentProperties();
+                formProperties.setValue("name", connection.getName()); //$NON-NLS-1$
+                if (creation) {
+                    repFactory.create(connectionItem, propertiesWizardPage.getDestinationPath());
+                }
+                compService.afterFormFinish(formName, formProperties);
             }
-        } catch (Exception e) {
+            if (!creation) {
+                RepositoryUpdateManager.updateDBConnection(connectionItem);
+            }
+            updateConnectionItem();
+        } catch (Throwable e) {
             new ErrorDialogWidthDetailArea(getShell(), PID, Messages.getString("CommonWizard.persistenceException"), //$NON-NLS-1$
                     ExceptionUtils.getFullStackTrace(e));
             return false;

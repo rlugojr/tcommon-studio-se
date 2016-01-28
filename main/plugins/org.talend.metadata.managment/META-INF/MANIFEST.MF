@@ -34,6 +34,7 @@ Export-Package: metadata.managment.i18n,
  org.talend.metadata.managment.hive.handler,
  org.talend.metadata.managment.mdm,
  org.talend.metadata.managment.model,
+ org.talend.metadata.managment.persistence,
  org.talend.metadata.managment.repository,
  org.talend.metadata.managment.utils
 Bundle-ClassPath: .

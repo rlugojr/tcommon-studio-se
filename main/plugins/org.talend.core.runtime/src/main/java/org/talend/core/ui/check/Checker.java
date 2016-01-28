@@ -1,6 +1,6 @@
 // ============================================================================
 //
-// Copyright (C) 2006-2016 Talend Inc. - www.talend.com
+// Copyright (C) 2006-2015 Talend Inc. - www.talend.com
 //
 // This source code is available under agreement available at
 // %InstallDIR%\features\org.talend.rcp.branding.%PRODUCTNAME%\%PRODUCTNAME%license.txt
@@ -19,16 +19,16 @@ import org.eclipse.core.runtime.IStatus;
  * created by ycbai on 2015年10月9日 Detailled comment
  *
  */
-public class Checker implements IChecker {
+public class Checker implements IChecker<Checker> {
 
-    private ICheckListener listener;
+    private ICheckListener<Checker> listener;
 
     private int statusLevel = IStatus.OK;
 
     private String status;
 
     @Override
-    public void setListener(ICheckListener listener) {
+    public void setListener(ICheckListener<Checker> listener) {
         this.listener = listener;
     }
 

@@ -15,6 +15,7 @@ package org.talend.repository.ui.wizards.metadata.connection.database;
 import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.widgets.Composite;
+import org.talend.components.api.properties.presentation.Form;
 import org.talend.core.model.metadata.IMetadataConnection;
 import org.talend.core.model.properties.ConnectionItem;
 import org.talend.designer.core.model.utils.emf.talendfile.ContextType;
@@ -97,5 +98,9 @@ public class DatabaseWizardPage extends WizardPage {
 
     public ContextType getSelectedContextType() {
         return databaseForm.getSelectedContextType();
+    }
+
+    public Form getNewWizardForm() {
+        return databaseForm.getNewWizardForm();
     }
 }
