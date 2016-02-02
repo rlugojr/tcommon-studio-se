@@ -32,6 +32,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.UIJob;
 import org.talend.commons.exception.LoginException;
 import org.talend.commons.exception.PersistenceException;
+import org.talend.components.api.service.ComponentService;
 import org.talend.core.GlobalServiceRegister;
 import org.talend.core.database.EDatabaseTypeName;
 import org.talend.core.database.conn.ConnParameterKeys;
@@ -79,11 +80,14 @@ import org.talend.core.model.repository.IRepositoryViewObject;
 import org.talend.core.model.repository.RepositoryContentManager;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.repository.ui.actions.metadata.AbstractCreateAction;
+import org.talend.core.runtime.services.IGenericWizardService;
 import org.talend.core.service.ISAPProviderService;
+import org.talend.core.ui.metadata.generic.GenericWizardDialog;
 import org.talend.cwm.helper.ConnectionHelper;
 import org.talend.cwm.helper.PackageHelper;
 import org.talend.cwm.helper.TableHelper;
 import org.talend.metadata.managment.connection.manager.HiveConnectionManager;
+import org.talend.metadata.managment.generic.GenericDBWizardUtil;
 import org.talend.metadata.managment.repository.ManagerConnection;
 import org.talend.metadata.managment.ui.utils.ConnectionContextHelper;
 import org.talend.metadata.managment.ui.utils.SwitchContextGroupNameImpl;
@@ -1071,8 +1075,14 @@ public abstract class AbstractCreateTableAction extends AbstractCreateAction {
                                                 PlatformUI.getWorkbench(), creation, node.getObject(), metadataTable,
                                                 getExistingNames(), forceReadOnly, managerConnection, metadataConnection);
 
-                                        WizardDialog wizardDialog = new WizardDialog(PlatformUI.getWorkbench()
-                                                .getActiveWorkbenchWindow().getShell(), databaseTableWizard);
+                                        ComponentService componentService = null;
+                                        IGenericWizardService genericWizardService = GenericDBWizardUtil
+                                                .getGenericWizardService();
+                                        if (genericWizardService != null) {
+                                            componentService = genericWizardService.getComponentService();
+                                        }
+                                        WizardDialog wizardDialog = new GenericWizardDialog(
+                                                Display.getCurrent().getActiveShell(), databaseTableWizard, componentService);
                                         wizardDialog.setBlockOnOpen(true);
                                         handleWizard(node, wizardDialog);
                                     }

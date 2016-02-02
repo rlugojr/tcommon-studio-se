@@ -30,6 +30,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWizard;
@@ -38,8 +39,12 @@ import org.talend.commons.ui.runtime.image.ECoreImage;
 import org.talend.commons.ui.runtime.image.ImageProvider;
 import org.talend.commons.ui.swt.dialogs.ErrorDialogWidthDetailArea;
 import org.talend.commons.utils.platform.PluginChecker;
+import org.talend.components.api.properties.presentation.Form;
+import org.talend.components.api.service.ComponentService;
+import org.talend.components.api.wizard.ComponentWizard;
 import org.talend.core.GlobalServiceRegister;
 import org.talend.core.ITDQRepositoryService;
+import org.talend.core.database.EDatabaseTypeName;
 import org.talend.core.model.metadata.IMetadataColumn;
 import org.talend.core.model.metadata.IMetadataConnection;
 import org.talend.core.model.metadata.IMetadataTable;
@@ -54,14 +59,16 @@ import org.talend.core.model.update.EUpdateResult;
 import org.talend.core.model.update.RepositoryUpdateManager;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.runtime.CoreRuntimePlugin;
+import org.talend.core.runtime.services.IGenericWizardService;
 import org.talend.cwm.helper.CatalogHelper;
 import org.talend.cwm.helper.ConnectionHelper;
 import org.talend.cwm.helper.ResourceHelper;
+import org.talend.metadata.managment.generic.GenericDBWizardUtil;
+import org.talend.metadata.managment.persistence.DBRepository;
 import org.talend.metadata.managment.repository.ManagerConnection;
 import org.talend.metadata.managment.ui.wizard.CheckLastVersionRepositoryWizard;
 import org.talend.repository.metadata.i18n.Messages;
 import org.talend.repository.model.IProxyRepositoryFactory;
-
 import orgomg.cwm.objectmodel.core.ModelElement;
 import orgomg.cwm.objectmodel.core.Package;
 import orgomg.cwm.resource.relational.Catalog;
@@ -74,6 +81,8 @@ import orgomg.cwm.resource.relational.Schema;
 public class DatabaseTableWizard extends CheckLastVersionRepositoryWizard implements INewWizard {
 
     private static Logger log = Logger.getLogger(DatabaseTableWizard.class);
+
+    private ComponentWizard dbWizard;
 
     private SelectorTableWizardPage selectorWizardPage;
 
@@ -124,14 +133,22 @@ public class DatabaseTableWizard extends CheckLastVersionRepositoryWizard implem
         isRepositoryObjectEditable();
         initLockStrategy();
         this.selectedMetadataTable = metadataTable;
+        DatabaseConnection connection = null;
         this.connectionItem = (ConnectionItem) object.getProperty().getItem();
         if (connectionItem != null) {
             oldTableMap = RepositoryUpdateManager.getOldTableIdAndNameMap(connectionItem, metadataTable, creation);
-            oldMetadataTable = RepositoryUpdateManager.getConversionMetadataTables(connectionItem.getConnection());
-            cloneBaseDataBaseConnection((DatabaseConnection) connectionItem.getConnection());
+            connection = (DatabaseConnection) connectionItem.getConnection();
+            oldMetadataTable = RepositoryUpdateManager.getConversionMetadataTables(connection);
+            cloneBaseDataBaseConnection(connection);
         }
         originalColumnsMap.clear();
         originalTablesMap.clear();
+
+        if (connection != null) {
+            EDatabaseTypeName dbType = EDatabaseTypeName.getTypeFromDbType(connection.getDatabaseType());
+            String dbTypeName = dbType.getXmlName().toLowerCase();
+            dbWizard = GenericDBWizardUtil.getDBWizard(connection, dbTypeName);
+        }
     }
 
     /**
@@ -150,35 +167,16 @@ public class DatabaseTableWizard extends CheckLastVersionRepositoryWizard implem
     public void addPages() {
         setWindowTitle(Messages.getString("TableWizard.windowTitle")); //$NON-NLS-1$
         setDefaultPageImageDescriptor(ImageProvider.getImageDesc(ECoreImage.METADATA_TABLE_WIZ));
-        TableInfoParameters tableInfoParameters = new TableInfoParameters();
 
         tableWizardpage = new DatabaseTableWizardPage(selectedMetadataTable, managerConnection, connectionItem,
                 isRepositoryObjectEditable(), metadataConnection, temConnection);
         tableWizardpage.setWizard(this);
         if (creation && !skipStep) {
-            selectorWizardPage = new SelectorTableWizardPage(connectionItem, isRepositoryObjectEditable(), tableInfoParameters,
-                    metadataConnection, temConnection);
-            tableFilterWizardPage = new DatabaseTableFilterWizardPage(tableInfoParameters, this.connectionItem,
-                    metadataConnection);
-
-            tableFilterWizardPage.setDescription(Messages.getString("DatabaseTableWizard.description")); //$NON-NLS-1$
-            tableFilterWizardPage.setPageComplete(true);
-            selectorWizardPage
-                    .setTitle(Messages.getString("TableWizardPage.titleCreate") + " \"" + connectionItem.getProperty().getLabel() //$NON-NLS-1$ //$NON-NLS-2$
-                            + "\""); //$NON-NLS-1$
-            selectorWizardPage.setDescription(Messages.getString("TableWizardPage.descriptionCreate")); //$NON-NLS-1$
-            selectorWizardPage.setPageComplete(true);
-
-            tableWizardpage
-                    .setTitle(Messages.getString("TableWizardPage.titleCreate") + " \"" + connectionItem.getProperty().getLabel() //$NON-NLS-1$ //$NON-NLS-2$
-                            + "\""); //$NON-NLS-1$
-            tableWizardpage.setDescription(Messages.getString("TableWizardPage.descriptionCreate")); //$NON-NLS-1$
-            tableWizardpage.setPageComplete(false);
-
-            addPage(tableFilterWizardPage);
-            addPage(selectorWizardPage);
-            addPage(tableWizardpage);
-
+            if (dbWizard == null) {
+                addStandardDbPages();
+            } else {
+                addNewWizardDbPages();
+            }
         } else {
             tableWizardpage
                     .setTitle(Messages.getString("TableWizardPage.titleUpdate") + " \"" + connectionItem.getProperty().getLabel() //$NON-NLS-1$ //$NON-NLS-2$
@@ -188,6 +186,47 @@ public class DatabaseTableWizard extends CheckLastVersionRepositoryWizard implem
             addPage(tableWizardpage);
         }
 
+    }
+
+    private void addStandardDbPages() {
+        TableInfoParameters tableInfoParameters = new TableInfoParameters();
+        selectorWizardPage = new SelectorTableWizardPage(connectionItem, isRepositoryObjectEditable(), tableInfoParameters,
+                metadataConnection, temConnection);
+        tableFilterWizardPage = new DatabaseTableFilterWizardPage(tableInfoParameters, this.connectionItem, metadataConnection);
+
+        tableFilterWizardPage.setDescription(Messages.getString("DatabaseTableWizard.description")); //$NON-NLS-1$
+        tableFilterWizardPage.setPageComplete(true);
+        selectorWizardPage
+                .setTitle(Messages.getString("TableWizardPage.titleCreate") + " \"" + connectionItem.getProperty().getLabel() //$NON-NLS-1$ //$NON-NLS-2$
+                        + "\""); //$NON-NLS-1$
+        selectorWizardPage.setDescription(Messages.getString("TableWizardPage.descriptionCreate")); //$NON-NLS-1$
+        selectorWizardPage.setPageComplete(true);
+
+        tableWizardpage
+                .setTitle(Messages.getString("TableWizardPage.titleCreate") + " \"" + connectionItem.getProperty().getLabel() //$NON-NLS-1$ //$NON-NLS-2$
+                        + "\""); //$NON-NLS-1$
+        tableWizardpage.setDescription(Messages.getString("TableWizardPage.descriptionCreate")); //$NON-NLS-1$
+        tableWizardpage.setPageComplete(false);
+
+        addPage(tableFilterWizardPage);
+        addPage(selectorWizardPage);
+        addPage(tableWizardpage);
+    }
+
+    private void addNewWizardDbPages() {
+        List<Form> forms = dbWizard.getForms();
+        if (forms != null && forms.size() > 1) {
+            IGenericWizardService genericWizardService = GenericDBWizardUtil.getGenericWizardService();
+            if (genericWizardService != null) {
+                ComponentService compService = genericWizardService.getComponentService();
+                if (compService != null) {
+                    compService.setRepository(new DBRepository());
+                    IWizardPage newDBRSWizardPage = genericWizardService.createGenericConnWizardPage(connectionItem,
+                            isRepositoryObjectEditable(), existingNames, creation, forms.get(1), compService, false);
+                    addPage(newDBRSWizardPage);
+                }
+            }
+        }
     }
 
     /**

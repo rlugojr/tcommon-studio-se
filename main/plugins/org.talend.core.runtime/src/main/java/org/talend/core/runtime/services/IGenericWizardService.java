@@ -14,6 +14,7 @@ package org.talend.core.runtime.services;
 
 import java.util.List;
 
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.talend.components.api.properties.presentation.Form;
@@ -125,5 +126,8 @@ public interface IGenericWizardService extends IService {
      * @return
      */
     public ComponentWizard getComponentWizard(String typeName, String compPropertiesStr, String location);
+
+    public IWizardPage createGenericConnWizardPage(ConnectionItem connectionItem, boolean isRepositoryObjectEditable,
+            String[] existingNames, boolean creation, Form form, ComponentService compService, boolean addContextSupport);
 
 }

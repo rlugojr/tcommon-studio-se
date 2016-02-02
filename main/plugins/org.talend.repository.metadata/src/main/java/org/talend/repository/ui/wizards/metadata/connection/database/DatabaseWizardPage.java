@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.talend.components.api.properties.presentation.Form;
 import org.talend.core.model.metadata.IMetadataConnection;
 import org.talend.core.model.properties.ConnectionItem;
+import org.talend.core.ui.metadata.generic.IGenericMetadataWizardPage;
 import org.talend.designer.core.model.utils.emf.talendfile.ContextType;
 import org.talend.metadata.managment.ui.wizard.AbstractForm;
 import org.talend.metadata.managment.ui.wizard.RepositoryWizard;
@@ -26,7 +27,7 @@ import org.talend.metadata.managment.ui.wizard.RepositoryWizard;
  * DatabaseWizard present the DatabaseForm. Use to Use to manage the metadata connection. Page allows setting a
  * database.
  */
-public class DatabaseWizardPage extends WizardPage {
+public class DatabaseWizardPage extends WizardPage implements IGenericMetadataWizardPage {
 
     private ConnectionItem connectionItem;
 
@@ -100,7 +101,8 @@ public class DatabaseWizardPage extends WizardPage {
         return databaseForm.getSelectedContextType();
     }
 
-    public Form getNewWizardForm() {
+    @Override
+    public Form getForm() {
         return databaseForm.getNewWizardForm();
     }
 }

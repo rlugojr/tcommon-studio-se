@@ -29,7 +29,8 @@ Require-Bundle: org.apache.commons.lang,
  org.talend.librariesmanager,
  org.eclipse.e4.ui.services,
  org.eclipse.ui.workbench,
- org.talend.themes.core
+ org.talend.themes.core,
+ org.talend.components.api
 Import-Package: org.eclipse.jdt.internal.ui.workingsets
 Export-Package: org.talend.core.ui,
  org.talend.core.ui.actions,
@@ -59,6 +60,7 @@ Export-Package: org.talend.core.ui,
  org.talend.core.ui.metadata.dialog,
  org.talend.core.ui.metadata.editor,
  org.talend.core.ui.metadata.extended.command,
+ org.talend.core.ui.metadata.generic,
  org.talend.core.ui.perspective,
  org.talend.core.ui.preference,
  org.talend.core.ui.preference.collector,

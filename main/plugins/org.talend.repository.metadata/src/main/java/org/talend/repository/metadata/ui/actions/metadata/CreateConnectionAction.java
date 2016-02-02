@@ -24,6 +24,7 @@ import org.talend.commons.ui.runtime.exception.ExceptionHandler;
 import org.talend.commons.ui.runtime.image.ECoreImage;
 import org.talend.commons.ui.runtime.image.ImageProvider;
 import org.talend.commons.ui.runtime.image.OverlayImageProvider;
+import org.talend.components.api.service.ComponentService;
 import org.talend.core.model.general.Project;
 import org.talend.core.model.metadata.builder.connection.ConnectionFactory;
 import org.talend.core.model.metadata.builder.connection.DatabaseConnection;
@@ -34,6 +35,9 @@ import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.model.repository.RepositoryObject;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.repository.ui.actions.metadata.AbstractCreateAction;
+import org.talend.core.runtime.services.IGenericWizardService;
+import org.talend.core.ui.metadata.generic.GenericWizardDialog;
+import org.talend.metadata.managment.generic.GenericDBWizardUtil;
 import org.talend.repository.ProjectManager;
 import org.talend.repository.metadata.i18n.Messages;
 import org.talend.repository.model.IProxyRepositoryFactory;
@@ -189,7 +193,13 @@ public class CreateConnectionAction extends AbstractCreateAction {
         }
 
         // Open the Wizard
-        WizardDialog wizardDialog = new WizardDialog(Display.getCurrent().getActiveShell(), databaseWizard);
+        ComponentService componentService = null;
+        IGenericWizardService genericWizardService = GenericDBWizardUtil.getGenericWizardService();
+        if (genericWizardService != null) {
+            componentService = genericWizardService.getComponentService();
+        }
+        WizardDialog wizardDialog = new GenericWizardDialog(Display.getCurrent().getActiveShell(), databaseWizard,
+                componentService);
         wizardDialog.setPageSize(780, 540);
         wizardDialog.create();
         wizardDialog.open();

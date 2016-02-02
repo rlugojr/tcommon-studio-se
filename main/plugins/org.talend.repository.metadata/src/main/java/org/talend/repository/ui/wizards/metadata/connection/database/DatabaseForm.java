@@ -515,12 +515,26 @@ public class DatabaseForm extends AbstractForm {
         layout2.marginHeight = 0;
         setLayout(layout2);
 
-        EDatabaseTypeName dbType = EDatabaseTypeName.getTypeFromDisplayName(getConnection().getDatabaseType());
-        String dbTypeName = dbType.getXmlName().toLowerCase();
-        ComponentWizard dbWizard = GenericDBWizardUtil.getDBWizard(getConnection(), dbTypeName);
-        if (dbWizard != null) {
-            updateNewWizardDbInfo(dbWizard);
-            updateVisibleStatusOfFields(true);
+        updateDbInfoPart();
+    }
+
+    private void updateDbInfoPart() {
+        EDatabaseTypeName dbType = null;
+        String dbTypeStr = dbTypeCombo.getText();
+        if (StringUtils.isEmpty(dbTypeStr)) {
+            dbType = null;
+        } else {
+            dbType = EDatabaseTypeName.getTypeFromDisplayName(dbTypeStr);
+        }
+        if (dbType != null) {
+            String dbTypeName = dbType.getXmlName().toLowerCase();
+            ComponentWizard dbWizard = GenericDBWizardUtil.getDBWizard(getConnection(), dbTypeName);
+            if (dbWizard == null) {
+                updateStandardDbInfo();
+            } else {
+                updateNewWizardDbInfo(dbWizard);
+            }
+            updateVisibleStatusOfFields(dbWizard != null);
         }
     }
 
@@ -3337,15 +3351,7 @@ public class DatabaseForm extends AbstractForm {
             @Override
             public void modifyText(final ModifyEvent e) {
                 getConnection().getParameters().clear();
-                EDatabaseTypeName dbType = EDatabaseTypeName.getTypeFromDisplayName(dbTypeCombo.getText());
-                String dbTypeName = dbType.getXmlName().toLowerCase();
-                ComponentWizard dbWizard = GenericDBWizardUtil.getDBWizard(getConnection(), dbTypeName);
-                if (dbWizard == null) {
-                    updateStandardDbInfo();
-                } else {
-                    updateNewWizardDbInfo(dbWizard);
-                }
-                updateVisibleStatusOfFields(dbWizard != null);
+                updateDbInfoPart();
             }
 
         });
@@ -3662,6 +3668,7 @@ public class DatabaseForm extends AbstractForm {
 
     private void resetControls() {
         hideControl(authenticationGrpForHBase, true);
+        newWizardForm = null;
     }
 
     private void clearFiledsForDiffDbTypes() {

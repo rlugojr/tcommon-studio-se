@@ -542,7 +542,7 @@ public class DatabaseWizard extends CheckLastVersionRepositoryWizard implements 
         this.connection.setLabel(displayName);
         connectionProperty.setId(propertyId);
         try {
-            Form form = databaseWizardPage.getNewWizardForm();
+            Form form = databaseWizardPage.getForm();
             if (form != null && form.isCallAfterFormFinish()) {
                 String formName = form.getName();
                 ComponentProperties formProperties = form.getComponentProperties();
