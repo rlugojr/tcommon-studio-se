@@ -124,12 +124,17 @@ public class InternalNodeComponentHandler extends AbstractComponentHandler {
      */
     private void generateComponentElementParamInfo(boolean istRunJob, Element parametersElement, List elementParameterList,
             INode node) {
-        List<IElementParameter> copyElementParameterList = new ArrayList(elementParameterList);
+        List<IElementParameter> copyElementParameterList = null;
 
         if (elementParameterList != null && elementParameterList.size() != 0) {
             for (int j = 0; j < elementParameterList.size(); j++) {
                 IElementParameter elemparameter = (IElementParameter) elementParameterList.get(j);
-
+                if (elemparameter.getFieldType() == EParameterFieldType.LABEL) {
+                    continue;
+                }
+                if (elemparameter.getChildParameters() != null && !elemparameter.getChildParameters().isEmpty()) {
+                    copyElementParameterList = new ArrayList<IElementParameter>(elemparameter.getChildParameters().values());
+                }
                 //                if ((istRunJob && elemparameter.getName().equals("PROCESS")) //$NON-NLS-1$
                 // || (!elemparameter.isShow(copyElementParameterList) && (!elemparameter.getName().equals(
                 // EParameterFieldType.SCHEMA_TYPE.getName())))
@@ -143,28 +148,39 @@ public class InternalNodeComponentHandler extends AbstractComponentHandler {
                 // }
                 // String value = HTMLDocUtils.checkString(elemparameter.getValue().toString());
                 Object eleObj = elemparameter.getValue();
+                IElementParameter param = null;
+                String name = ""; //$NON-NLS-1$
                 String value = ""; //$NON-NLS-1$
                 if (eleObj != null) {
                     value = eleObj.toString();
                 }
+                if (elemparameter.getFieldType() == EParameterFieldType.PROPERTY_TYPE) {
+                    param = getElementParameter(elemparameter, EParameterFieldType.PROPERTY_TYPE);
+                    if (param != null) {
+                        name = param.getDisplayName();
+                        value = param.getValue().toString();
+                    }
 
-                if (elemparameter.getName().equals(EParameterFieldType.PROPERTY_TYPE.getName())
-                        && value.equals(IHTMLDocConstants.REPOSITORY)) {
                     String repositoryValueForPropertyType = getRepositoryValueForPropertyType(copyElementParameterList,
                             "REPOSITORY_PROPERTY_TYPE"); //$NON-NLS-1$
                     value = repositoryValueForPropertyType == null ? IHTMLDocConstants.REPOSITORY_BUILT_IN : value.toString()
                             .toLowerCase() + ": " + repositoryValueForPropertyType; //$NON-NLS-1$
-                } else if (elemparameter.getName().equals(EParameterFieldType.SCHEMA_TYPE.getName())
-                        && value.equals(IHTMLDocConstants.REPOSITORY)) {
+                } else if (elemparameter.getFieldType() == EParameterFieldType.SCHEMA_TYPE) {
+                    param = getElementParameter(elemparameter, EParameterFieldType.SCHEMA_TYPE);
+                    if (param != null) {
+                        name = param.getDisplayName();
+                        value = param.getValue().toString();
+                    }
                     String repositoryValueForSchemaType = getRepositoryValueForSchemaType(copyElementParameterList,
                             "REPOSITORY_SCHEMA_TYPE"); //$NON-NLS-1$
                     value = repositoryValueForSchemaType == null ? IHTMLDocConstants.REPOSITORY_BUILT_IN : value.toString()
                             .toLowerCase() + ": " + repositoryValueForSchemaType; //$NON-NLS-1$
-                }
-
-                else if (elemparameter.getName().equals(EParameterFieldType.QUERYSTORE_TYPE.getName())
-                        && value.equals(IHTMLDocConstants.REPOSITORY)) {
-
+                } else if (elemparameter.getFieldType() == EParameterFieldType.QUERYSTORE_TYPE) {
+                    param = getElementParameter(elemparameter, EParameterFieldType.QUERYSTORE_TYPE);
+                    if (param != null) {
+                        name = param.getDisplayName();
+                        value = param.getValue().toString();
+                    }
                     String repositoryValueForQueryStoreType = getRepositoryValueForQueryStoreType(copyElementParameterList,
                             "REPOSITORY_QUERYSTORE_TYPE"); //$NON-NLS-1$
                     value = repositoryValueForQueryStoreType == null ? IHTMLDocConstants.REPOSITORY_BUILT_IN : value.toString()
@@ -177,10 +193,13 @@ public class InternalNodeComponentHandler extends AbstractComponentHandler {
                 else if (elemparameter.getRepositoryValue() != null
                         && elemparameter.getRepositoryValue().toUpperCase().contains("PASSWORD") //$NON-NLS-1$
                         || elemparameter.getFieldType() == EParameterFieldType.PASSWORD) {
+                    name = elemparameter.getDisplayName();
                     value = ParameterValueUtil.getValue4Doc(elemparameter).toString();
+                } else {
+                    name = elemparameter.getDisplayName();
                 }
                 Element columnElement = parametersElement.addElement("column"); //$NON-NLS-1$
-                columnElement.addAttribute("name", HTMLDocUtils.checkString(elemparameter.getDisplayName())); //$NON-NLS-1$
+                columnElement.addAttribute("name", HTMLDocUtils.checkString(name)); //$NON-NLS-1$
 
                 if (value.equalsIgnoreCase(IHTMLDocConstants.REPOSITORY_BUILT_IN)) {
                     value = IHTMLDocConstants.DISPLAY_BUILT_IN;
@@ -259,6 +278,18 @@ public class InternalNodeComponentHandler extends AbstractComponentHandler {
                         return value;
                     }
                 }
+            }
+        }
+        return null;
+    }
+
+    private IElementParameter getElementParameter(IElementParameter elemparameter, EParameterFieldType paramType) {
+        Map<String, IElementParameter> map = elemparameter.getChildParameters();
+        for (Map.Entry<String, IElementParameter> entry : map.entrySet()) {
+            if (entry.getKey().equals(paramType.name())
+                    && (entry.getValue().getValue().equals(IHTMLDocConstants.REPOSITORY) || entry.getValue().getValue()
+                            .equals(IHTMLDocConstants.REPOSITORY_BUILT_IN))) {
+                return entry.getValue();
             }
         }
         return null;
