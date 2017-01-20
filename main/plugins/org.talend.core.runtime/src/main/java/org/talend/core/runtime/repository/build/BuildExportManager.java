@@ -25,7 +25,7 @@ public final class BuildExportManager {
 
     private static final BuildExportRegistryReader reader = new BuildExportRegistryReader();
 
-	private EXPORT_TYPE exportType = EXPORT_TYPE.STANDARD;
+    private EXPORT_TYPE exportType = EXPORT_TYPE.STANDARD;
 
     private BuildExportManager() {
         super();
@@ -48,32 +48,40 @@ public final class BuildExportManager {
         }
     }
 
-	/**
-	 * Calling this method will set export type to OSGI. The purpose is that any implementation of "Build Export Provider" schema, will
-	 * be able to know when the context is OSGI by calling BuildExportManager.getInstance().getCurrentExportType().
-	 * @see #getCurrentExportType()
-	 * @param resource
-	 * @param item
-	 */
-	public void exportOSGIDependencies(ExportFileResource resource, ProcessItem item) {
-		this.exportType = EXPORT_TYPE.OSGI;
-		try {
-			exportDependencies(resource, item);
-		} finally {
-			this.exportType = EXPORT_TYPE.STANDARD;
-		}
-	}
-	
-	/**
-	 * Provide the context of the job export (i.e. OSGI or STANDARD export)
-	 * @see #exportOSGIDependencies(ExportFileResource, ProcessItem)
-	 * @return context of the job export
-	 */
-	public EXPORT_TYPE getCurrentExportType() {
-		return exportType;
-	}
-	
-	public static enum EXPORT_TYPE {
-		OSGI,STANDARD;
-	}
+    /**
+     * Calling this method will set export type to OSGI. The purpose is that any implementation of
+     * "Build Export Provider" schema, will be able to know when the context is OSGI by calling
+     * BuildExportManager.getInstance().getCurrentExportType().
+     * 
+     * @see #getCurrentExportType()
+     * @param resource
+     * @param item
+     */
+    public void exportOSGIDependencies(ExportFileResource resource, ProcessItem item) {
+        this.exportType = EXPORT_TYPE.OSGI;
+        try {
+            exportDependencies(resource, item);
+        } finally {
+            this.exportType = EXPORT_TYPE.STANDARD;
+        }
+    }
+
+    /**
+     * Provide the context of the job export (i.e. OSGI or STANDARD export)
+     * 
+     * @see #exportOSGIDependencies(ExportFileResource, ProcessItem)
+     * @return context of the job export
+     */
+    public EXPORT_TYPE getCurrentExportType() {
+        return exportType;
+    }
+
+    public static enum EXPORT_TYPE {
+        OSGI,
+        STANDARD;
+    }
+
+    public AbstractBuildProvider[] getBuildProviders() {
+        return reader.getBuildProviders();
+    }
 }
