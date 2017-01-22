@@ -12,30 +12,14 @@
 // ============================================================================
 package org.talend.core.runtime.repository.build;
 
-import java.util.Map;
-
-import org.talend.core.runtime.process.IBuildJobHandler;
-
 /**
  * DOC ggu class global comment. Detailled comment
  */
-public abstract class AbstractBuildProvider implements IBuildParametes, IBuildPomCreatorParameters {
+public interface IBuildParametes {
 
-    BuildType buildType;
+    static final String PROCESS = "Process"; //$NON-NLS-1$
 
-    public BuildType getBuildType() {
-        return buildType;
-    }
+    static final String ITEM = "Item"; //$NON-NLS-1$
 
-    public boolean valid(Map<String, Object> parameters) {
-        return false;
-    }
-
-    public IMavenPomCreator createPomCreator(Map<String, Object> parameters) {
-        return null;
-    }
-
-    public IBuildJobHandler createHandler(Map<String, Object> parameters) {
-        return null;
-    }
+    static final String REPOSITORY_OBJECT = "RepositoryObject"; //$NON-NLS-1$
 }

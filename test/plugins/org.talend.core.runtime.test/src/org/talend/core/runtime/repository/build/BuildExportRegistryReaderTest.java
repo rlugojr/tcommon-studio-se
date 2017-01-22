@@ -16,7 +16,6 @@ import java.util.HashMap;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.talend.core.runtime.process.IBuildJobHandler;
 
 /**
  * DOC ggu class global comment. Detailled comment
@@ -24,11 +23,6 @@ import org.talend.core.runtime.process.IBuildJobHandler;
 public class BuildExportRegistryReaderTest {
 
     class BuildProviderTestClass extends AbstractBuildProvider {
-
-        @Override
-        public IBuildJobHandler createHandler() {
-            return null;
-        }
 
     }
 

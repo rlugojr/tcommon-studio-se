@@ -29,8 +29,8 @@ import org.talend.core.model.properties.Project;
 import org.talend.core.model.properties.Property;
 import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.model.utils.JavaResourcesHelper;
-import org.talend.core.runtime.process.LastGenerationInfo;
 import org.talend.core.runtime.projectsetting.IProjectSettingTemplateConstants;
+import org.talend.core.runtime.repository.build.IMavenPomCreator;
 import org.talend.designer.maven.template.ETalendMavenVariables;
 import org.talend.designer.maven.tools.ProcessorDependenciesManager;
 import org.talend.designer.maven.utils.PomIdsHelper;
@@ -42,7 +42,7 @@ import org.talend.repository.ProjectManager;
 /**
  * DOC ggu class global comment. Detailled comment
  */
-public abstract class AbstractMavenProcessorPom extends CreateMavenBundleTemplatePom {
+public abstract class AbstractMavenProcessorPom extends CreateMavenBundleTemplatePom implements IMavenPomCreator {
 
     private final IProcessor jobProcessor;
 
@@ -118,11 +118,11 @@ public abstract class AbstractMavenProcessorPom extends CreateMavenBundleTemplat
     protected void addDependencies(Model model) {
         try {
             getProcessorDependenciesManager().updateDependencies(null, model);
-            
+
             // add children jobs in dependencies
             final List<Dependency> dependencies = model.getDependencies();
             String parentId = getJobProcessor().getProperty().getId();
-            final Set<JobInfo> clonedChildrenJobInfors = getJobProcessor().getBuildChildrenJobs();            
+            final Set<JobInfo> clonedChildrenJobInfors = getJobProcessor().getBuildChildrenJobs();
             for (JobInfo jobInfo : clonedChildrenJobInfors) {
                 if (jobInfo.getFatherJobInfo() != null && jobInfo.getFatherJobInfo().getJobId().equals(parentId)) {
                     if (!validChildrenJob(jobInfo)) {
@@ -133,8 +133,8 @@ public abstract class AbstractMavenProcessorPom extends CreateMavenBundleTemplat
                         version = getDeployVersion();
                     }
                     // same group as main job.
-                    Dependency d = PomUtil.createDependency(model.getGroupId(), PomIdsHelper.getJobArtifactId(jobInfo),
-                            version, null);
+                    Dependency d = PomUtil.createDependency(model.getGroupId(), PomIdsHelper.getJobArtifactId(jobInfo), version,
+                            null);
                     dependencies.add(d);
                 }
             }

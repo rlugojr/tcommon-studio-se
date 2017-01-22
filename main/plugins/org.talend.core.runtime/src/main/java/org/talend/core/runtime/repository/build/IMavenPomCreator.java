@@ -14,28 +14,16 @@ package org.talend.core.runtime.repository.build;
 
 import java.util.Map;
 
-import org.talend.core.runtime.process.IBuildJobHandler;
+import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * DOC ggu class global comment. Detailled comment
  */
-public abstract class AbstractBuildProvider implements IBuildParametes, IBuildPomCreatorParameters {
+public interface IMavenPomCreator {
 
-    BuildType buildType;
+    void setOverwrite(boolean overwrite);
 
-    public BuildType getBuildType() {
-        return buildType;
-    }
+    void setArgumentsMap(Map<String, Object> argumentsMap);
 
-    public boolean valid(Map<String, Object> parameters) {
-        return false;
-    }
-
-    public IMavenPomCreator createPomCreator(Map<String, Object> parameters) {
-        return null;
-    }
-
-    public IBuildJobHandler createHandler(Map<String, Object> parameters) {
-        return null;
-    }
+    void create(IProgressMonitor monitor) throws Exception;
 }

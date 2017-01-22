@@ -87,7 +87,7 @@ public class BuildExportRegistryReader extends RegistryReader {
 
     AbstractBuildProvider[] getBuildProviders() {
         init();
-        return buildProviders;
+        return buildProviders != null ? buildProviders : new AbstractBuildProvider[0];
     }
 
     /*
@@ -129,23 +129,27 @@ public class BuildExportRegistryReader extends RegistryReader {
 
                         resgistry.provider = (AbstractBuildProvider) element.createExecutableExtension("provider"); //$NON-NLS-1$
 
+                        // the build type can be empty for some case, like test case, only for pom creator, so no type.
+                        // or will use it for all.
                         IConfigurationElement[] buidTypeChildren = element.getChildren("buildType"); //$NON-NLS-1$
-                        if (buidTypeChildren == null || buidTypeChildren.length != 1) {
-                            throw new IllegalArgumentException(
-                                    "The build type should only can be set only one, can't support more.");
-                        }
+                        if (buidTypeChildren != null && buidTypeChildren.length > 0) {
+                            if (buidTypeChildren.length > 1) {
+                                throw new IllegalArgumentException(
+                                        "The build type should only can be set only one, can't support more.");
+                            }
 
-                        // build type
-                        String buildTypeName = buidTypeChildren[0].getAttribute("name"); //$NON-NLS-1$
-                        String buildTypeLabel = buidTypeChildren[0].getAttribute("label"); //$NON-NLS-1$
+                            // build type
+                            String buildTypeName = buidTypeChildren[0].getAttribute("name"); //$NON-NLS-1$
+                            String buildTypeLabel = buidTypeChildren[0].getAttribute("label"); //$NON-NLS-1$
 
-                        int order = 0;
-                        String orderStr = buidTypeChildren[0].getAttribute("order"); //$NON-NLS-1$
-                        if (orderStr != null && !orderStr.isEmpty()) {
-                            order = Integer.parseInt(orderStr);
+                            int order = 0;
+                            String orderStr = buidTypeChildren[0].getAttribute("order"); //$NON-NLS-1$
+                            if (orderStr != null && !orderStr.isEmpty()) {
+                                order = Integer.parseInt(orderStr);
+                            }
+                            BuildType buildType = new BuildType(buildTypeName, buildTypeLabel, order);
+                            resgistry.provider.buildType = buildType;
                         }
-                        BuildType buildType = new BuildType(buildTypeName, buildTypeLabel, order);
-                        resgistry.provider.buildType = buildType;
 
                         buildProvidersMap.put(resgistry.id, resgistry);
                     } catch (Exception e) {

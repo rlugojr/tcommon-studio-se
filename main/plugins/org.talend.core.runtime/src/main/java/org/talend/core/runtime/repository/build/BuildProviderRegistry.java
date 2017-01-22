@@ -22,6 +22,9 @@ class BuildProviderRegistry {
     String id, description, overrideId;
 
     int getOrder() {
-        return provider.buildType.order;
+        if (provider.buildType != null) {
+            return provider.getBuildType().order;
+        }
+        return 0;
     }
 }

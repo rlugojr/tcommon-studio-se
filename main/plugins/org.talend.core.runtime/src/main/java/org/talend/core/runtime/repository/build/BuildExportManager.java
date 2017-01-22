@@ -12,14 +12,20 @@
 // ============================================================================
 package org.talend.core.runtime.repository.build;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.talend.core.model.properties.Item;
 import org.talend.core.model.properties.ProcessItem;
 import org.talend.repository.documentation.ExportFileResource;
 
 /**
  * DOC ggu class global comment. Detailled comment
+ * 
+ * in order to do junit, so remove the "final" modifier.
  */
-public final class BuildExportManager {
+public/* final */class BuildExportManager {
 
     private static final BuildExportManager instance = new BuildExportManager();
 
@@ -27,7 +33,10 @@ public final class BuildExportManager {
 
     private EXPORT_TYPE exportType = EXPORT_TYPE.STANDARD;
 
-    private BuildExportManager() {
+    /*
+     * in order to do junit, so keep "package" modifier.
+     */
+    BuildExportManager() {
         super();
     }
 
@@ -81,7 +90,51 @@ public final class BuildExportManager {
         STANDARD;
     }
 
-    public AbstractBuildProvider[] getBuildProviders() {
+    public AbstractBuildProvider[] getAllBuildProviders() {
         return reader.getBuildProviders();
+    }
+
+    public BuildType[] getValidBuildTypes(Map<String, Object> parameters) {
+        List<BuildType> validBuildTypes = new ArrayList<BuildType>();
+        final AbstractBuildProvider[] buildProviders = getAllBuildProviders();
+        for (AbstractBuildProvider provider : buildProviders) {
+            if (provider.valid(parameters)) {
+                final BuildType buildType = provider.getBuildType();
+                if (buildType != null) {
+                    validBuildTypes.add(buildType);
+                }
+            }
+        }
+        return validBuildTypes.toArray(new BuildType[0]);
+    }
+
+    public AbstractBuildProvider[] getValidBuildProviders(Map<String, Object> parameters) {
+        List<AbstractBuildProvider> validBuildProviders = new ArrayList<AbstractBuildProvider>();
+        final AbstractBuildProvider[] buildProviders = getAllBuildProviders();
+        for (AbstractBuildProvider provider : buildProviders) {
+            if (provider.valid(parameters)) {
+                validBuildProviders.add(provider);
+            }
+        }
+        return validBuildProviders.toArray(new AbstractBuildProvider[0]);
+    }
+
+    /**
+     * if null build type, will use the first one by default
+     */
+    public AbstractBuildProvider getBuildProvider(String buildTypeName, Map<String, Object> parameters) {
+        final AbstractBuildProvider[] buildProviders = getValidBuildProviders(parameters);
+        if (buildProviders == null || buildProviders.length == 0) {
+            return null;
+        }
+        if (buildTypeName == null) {// if no build type, first one is by default.
+            return buildProviders[0];
+        }
+        for (AbstractBuildProvider provider : buildProviders) {
+            if (provider.getBuildType() != null && provider.getBuildType().getName().equals(buildTypeName)) {
+                return provider;
+            }
+        }
+        return null;
     }
 }
