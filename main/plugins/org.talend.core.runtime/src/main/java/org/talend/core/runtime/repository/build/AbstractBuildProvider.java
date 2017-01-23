@@ -19,7 +19,7 @@ import org.talend.core.runtime.process.IBuildJobHandler;
 /**
  * DOC ggu class global comment. Detailled comment
  */
-public abstract class AbstractBuildProvider implements IBuildParametes, IBuildPomCreatorParameters {
+public abstract class AbstractBuildProvider implements IBuildParametes, IBuildPomCreatorParameters, IBuildJobParameters {
 
     BuildType buildType;
 

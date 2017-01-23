@@ -12,12 +12,13 @@
 // ============================================================================
 package org.talend.core.runtime.repository.build;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-
 /**
  * DOC ggu class global comment. Detailled comment
  */
-public interface IMavenPomCreator {
+public interface IBuildJobParameters {
 
-    void create(IProgressMonitor monitor) throws Exception;
+    static final String CONTEXT_GROUP = "ContextGroup"; //$NON-NLS-1$
+
+    static final String CHOICE_OPTION = "ChoiceOption"; //$NON-NLS-1$
+
 }

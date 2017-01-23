@@ -26,4 +26,8 @@ public interface IBuildPomCreatorParameters {
     static final String CP_WIN = "WindowsClasspath"; //$NON-NLS-1$
 
     static final String CP_LINUX = "LinuxClasspath"; //$NON-NLS-1$
+
+    static final String ARGUMENTS_MAP = "ArgumentsMap"; //$NON-NLS-1$
+
+    static final String OVERWRITE_POM = "OverwritePom"; //$NON-NLS-1$
 }
