@@ -14,6 +14,7 @@ package org.talend.core.ui;
 
 import org.talend.commons.exception.PersistenceException;
 import org.talend.core.IService;
+import org.talend.core.model.components.ComponentCategory;
 import org.talend.core.model.properties.Item;
 
 /**
@@ -22,7 +23,9 @@ import org.talend.core.model.properties.Item;
  */
 public interface ITestContainerCoreService extends IService {
 
-    public Item getParentJobItem(Item item) throws PersistenceException;
+    Item getParentJobItem(Item item) throws PersistenceException;
+
+    boolean isValidTestCase(Item item, ComponentCategory category);
 
     public boolean isStandard(Item item);
 
