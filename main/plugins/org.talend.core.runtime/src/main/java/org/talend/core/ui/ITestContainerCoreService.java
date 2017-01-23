@@ -12,6 +12,7 @@
 // ============================================================================
 package org.talend.core.ui;
 
+import org.talend.commons.exception.PersistenceException;
 import org.talend.core.IService;
 import org.talend.core.model.properties.Item;
 
@@ -20,6 +21,10 @@ import org.talend.core.model.properties.Item;
  *
  */
 public interface ITestContainerCoreService extends IService {
+
+    public Item getParentJobItem(Item item) throws PersistenceException;
+
+    public boolean isStandard(Item item);
 
     public boolean isSpark(Item item);
 
