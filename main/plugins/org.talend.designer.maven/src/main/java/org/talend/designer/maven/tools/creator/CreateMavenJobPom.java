@@ -42,9 +42,7 @@ import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.Profile;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.runtime.Assert;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.utils.VersionUtils;
@@ -95,10 +93,6 @@ public class CreateMavenJobPom extends AbstractMavenProcessorPom {
 
     private IFile assemblyFile;
 
-    private IFolder objectTypeFolder;
-
-    private IPath itemRelativePath;
-
     public CreateMavenJobPom(IProcessor jobProcessor, IFile pomFile) {
         super(jobProcessor, pomFile, IProjectSettingTemplateConstants.POM_JOB_TEMPLATE_FILE_NAME);
     }
@@ -141,22 +135,6 @@ public class CreateMavenJobPom extends AbstractMavenProcessorPom {
 
     public void setAssemblyFile(IFile assemblyFile) {
         this.assemblyFile = assemblyFile;
-    }
-
-    public IFolder getObjectTypeFolder() {
-        return objectTypeFolder;
-    }
-
-    public void setObjectTypeFolder(IFolder objectTypeFolder) {
-        this.objectTypeFolder = objectTypeFolder;
-    }
-
-    public IPath getItemRelativePath() {
-        return itemRelativePath;
-    }
-
-    public void setItemRelativePath(IPath itemRelativePath) {
-        this.itemRelativePath = itemRelativePath;
     }
 
     /*

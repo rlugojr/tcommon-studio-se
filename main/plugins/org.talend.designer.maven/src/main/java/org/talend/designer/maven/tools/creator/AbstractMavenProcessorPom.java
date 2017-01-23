@@ -20,7 +20,9 @@ import java.util.Set;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IPath;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.core.model.process.IProcess;
 import org.talend.core.model.process.JobInfo;
@@ -48,6 +50,10 @@ public abstract class AbstractMavenProcessorPom extends CreateMavenBundleTemplat
 
     private final ProcessorDependenciesManager processorDependenciesManager;
 
+    private IFolder objectTypeFolder;
+
+    private IPath itemRelativePath;
+
     public AbstractMavenProcessorPom(IProcessor jobProcessor, IFile pomFile, String bundleTemplateName) {
         super(pomFile, IProjectSettingTemplateConstants.PATH_STANDALONE + '/' + bundleTemplateName);
         Assert.isNotNull(jobProcessor);
@@ -66,6 +72,22 @@ public abstract class AbstractMavenProcessorPom extends CreateMavenBundleTemplat
 
     protected ProcessorDependenciesManager getProcessorDependenciesManager() {
         return processorDependenciesManager;
+    }
+
+    public IFolder getObjectTypeFolder() {
+        return objectTypeFolder;
+    }
+
+    public void setObjectTypeFolder(IFolder objectTypeFolder) {
+        this.objectTypeFolder = objectTypeFolder;
+    }
+
+    public IPath getItemRelativePath() {
+        return itemRelativePath;
+    }
+
+    public void setItemRelativePath(IPath itemRelativePath) {
+        this.itemRelativePath = itemRelativePath;
     }
 
     protected void setAttributes(Model model) {
