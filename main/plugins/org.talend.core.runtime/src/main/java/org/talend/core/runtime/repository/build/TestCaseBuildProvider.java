@@ -25,6 +25,9 @@ public abstract class TestCaseBuildProvider extends AbstractBuildProvider {
 
     @Override
     public boolean valid(Map<String, Object> parameters) {
+        if (parameters == null || parameters.isEmpty()) {
+            return false;
+        }
         Object object = parameters.get(ITEM);
         if (object != null && object instanceof Item
                 && GlobalServiceRegister.getDefault().isServiceRegistered(ITestContainerProviderService.class)) {

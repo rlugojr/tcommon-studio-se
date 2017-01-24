@@ -597,6 +597,15 @@ public class RepositoryObjectTypeBuildProviderTest {
     }
 
     @Test
+    public void test_valid_nonProcess() {
+        Map<String, Object> parameters = new HashMap<String, Object>();
+        parameters.put(IBuildParametes.PROCESS, new Object());
+
+        RepositoryObjectTypeBuildProviderTestClass proivder = new RepositoryObjectTypeBuildProviderTestClass();
+        Assert.assertFalse(proivder.valid(parameters));
+    }
+
+    @Test
     public void test_valid_process() {
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put(IBuildParametes.PROCESS, new TestProcess());
@@ -606,12 +615,30 @@ public class RepositoryObjectTypeBuildProviderTest {
     }
 
     @Test
+    public void test_valid_nonItem() {
+        Map<String, Object> parameters = new HashMap<String, Object>();
+        parameters.put(IBuildParametes.ITEM, new Object());
+
+        RepositoryObjectTypeBuildProviderTestClass proivder = new RepositoryObjectTypeBuildProviderTestClass();
+        Assert.assertFalse(proivder.valid(parameters));
+    }
+
+    @Test
     public void test_valid_item() {
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put(IBuildParametes.ITEM, new TestProcess().getProperty().getItem());
 
         RepositoryObjectTypeBuildProviderTestClass proivder = new RepositoryObjectTypeBuildProviderTestClass();
         Assert.assertTrue(proivder.valid(parameters));
+    }
+
+    @Test
+    public void test_valid_nonRepositoryViewObject() {
+        Map<String, Object> parameters = new HashMap<String, Object>();
+        parameters.put(IBuildParametes.REPOSITORY_OBJECT, new Object());
+
+        RepositoryObjectTypeBuildProviderTestClass proivder = new RepositoryObjectTypeBuildProviderTestClass();
+        Assert.assertFalse(proivder.valid(parameters));
     }
 
     @Test

@@ -57,10 +57,8 @@ public abstract class RepositoryObjectTypeBuildProvider extends AbstractBuildPro
             }
         }
 
-        if (type != null) {
-            if (type != null && type.equals(getObjectType())) {
-                return true;
-            }
+        if (type != null && type.equals(getObjectType())) {
+            return true;
         }
 
         return false;
