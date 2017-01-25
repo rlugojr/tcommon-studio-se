@@ -12,28 +12,12 @@
 // ============================================================================
 package org.talend.core.runtime.repository.build;
 
-import java.util.Map;
+import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * DOC ggu class global comment. Detailled comment
  */
-public abstract class AbstractBuildProvider implements IBuildParametes, IBuildPomCreatorParameters, IBuildJobParameters {
+public interface IBuildExportHandler {
 
-    BuildType buildType;
-
-    public BuildType getBuildType() {
-        return buildType;
-    }
-
-    public boolean valid(Map<String, Object> parameters) {
-        return false;
-    }
-
-    public IMavenPomCreator createPomCreator(Map<String, Object> parameters) {
-        return null;
-    }
-
-    public IBuildExportHandler createBuildExportHandler(Map<String, Object> parameters) {
-        return null;
-    }
+    void build(IProgressMonitor monitor) throws Exception;
 }

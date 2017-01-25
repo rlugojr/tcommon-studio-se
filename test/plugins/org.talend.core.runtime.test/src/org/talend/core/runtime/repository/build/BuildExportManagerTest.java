@@ -114,6 +114,14 @@ public class BuildExportManagerTest {
     }
 
     @Test
+    public void test_getBuildProvider_nullTypeName() {
+        AbstractBuildProvider buildProvider = new BuildExportManagerTestClass().getBuildProvider(null, Collections.emptyMap());
+        Assert.assertNotNull(buildProvider);
+        Assert.assertNotNull(buildProvider.getBuildType());
+        Assert.assertEquals("Type1", buildProvider.getBuildType().getName()); // first one by default
+    }
+
+    @Test
     public void test_getBuildProvider_withTypeName() {
         AbstractBuildProvider buildProvider = new BuildExportManagerTestClass().getBuildProvider("Type1", Collections.emptyMap());
         Assert.assertNotNull(buildProvider);
@@ -126,11 +134,4 @@ public class BuildExportManagerTest {
         Assert.assertEquals("Type3", buildProvider.getBuildType().getName());
     }
 
-    @Test
-    public void test_getBuildProvider_nullTypeName() {
-        AbstractBuildProvider buildProvider = new BuildExportManagerTestClass().getBuildProvider(null, Collections.emptyMap());
-        Assert.assertNotNull(buildProvider);
-        Assert.assertNotNull(buildProvider.getBuildType());
-        Assert.assertEquals("Type1", buildProvider.getBuildType().getName()); // first one by default
-    }
 }
