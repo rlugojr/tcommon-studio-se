@@ -35,4 +35,6 @@ public interface IExpressionBuilderDialogService extends IService {
     public IExpressionBuilderDialogController getExpressionBuilderInstance(Composite parent, IExpressionDataBean dataBean,
             INode component, List<Variable> vars, boolean hasPigDataFuCategory);
 
+    public IExpressionBuilderDialogController getExpressionBuilderInstance(Composite parent, IExpressionDataBean dataBean,
+            INode component, boolean isBatch);
 }
