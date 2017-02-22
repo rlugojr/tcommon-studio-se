@@ -12,12 +12,16 @@
 // ============================================================================
 package org.talend.core.runtime.repository.build;
 
+import java.util.Map;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 
 /**
  * DOC ggu class global comment. Detailled comment
  */
 public interface IBuildExportHandler {
+
+    Map<String, Object> getArguments();
 
     void build(IProgressMonitor monitor) throws Exception;
 }
